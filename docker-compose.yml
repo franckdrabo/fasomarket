@@ -1,0 +1,100 @@
+version: '3.8'
+
+services:
+  # ─── Base de données PostgreSQL ──────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: bazario-db
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${DB_USER:-bazario}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-bazario_secret}
+      POSTGRES_DB: ${DB_NAME:-bazario}
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-bazario}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Cache Redis ─────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: bazario-redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Backend NestJS ──────────────────────────────────────────────────────
+  backend:
+    build:
+      # Contexte à la racine pour accéder au package-lock.json du workspace
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: bazario-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: ${BACKEND_PORT:-3000}
+      DATABASE_URL: "postgresql://${DB_USER:-bazario}:${DB_PASSWORD:-bazario_secret}@postgres:5432/${DB_NAME:-bazario}?schema=public"
+      REDIS_URL: "redis://:${REDIS_PASSWORD:-}@redis:6379"
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-15m}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-7d}
+      ORANGE_MONEY_API_KEY: ${ORANGE_MONEY_API_KEY:-}
+      MOOV_MONEY_API_KEY: ${MOOV_MONEY_API_KEY:-}
+      WAVE_API_KEY: ${WAVE_API_KEY:-}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
+      # Chemin du fichier de credentials Firebase dans le conteneur
+      FIREBASE_SERVICE_ACCOUNT_PATH: ${FIREBASE_SERVICE_ACCOUNT_PATH:-/app/firebase-credentials.json}
+    ports:
+      - "${BACKEND_PORT:-3000}:3000"
+    volumes:
+      # Monter le fichier de credentials Firebase (créer firebase-credentials.json à la racine)
+      - ./firebase-credentials.json:/app/firebase-credentials.json:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # ─── (Optionnel) Nginx reverse proxy ─────────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: bazario-nginx
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    profiles:
+      - with-proxy
+
+volumes:
+  postgres_data:
+    name: bazario_postgres_data
+  redis_data:
+    name: bazario_redis_data

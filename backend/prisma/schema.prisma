@@ -1,0 +1,215 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── User ────────────────────────────────────────────────────────────────────
+model User {
+  id            String    @id @default(cuid())
+  phone         String    @unique
+  nom           String
+  avatar        String?
+  ville         String?
+  bio           String?
+  noteMoyenne   Float     @default(0)
+  nbVentes      Int       @default(0)
+  nbAchats      Int       @default(0)
+  badgeVerifie  Boolean   @default(false)
+  otpSecret     String?
+  otpExpiresAt  DateTime?
+  refreshToken  String?
+  fcmTokens     String[]
+  biometricEnabled Boolean @default(false)
+  dateCreation  DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  articlesVendus      Article[]
+  conversationsAcheteur Conversation[] @relation("ConversationAcheteur")
+  conversationsVendeur Conversation[]  @relation("ConversationVendeur")
+  messagesEnvoyes     Message[]
+  transactionsAcheteur Transaction[]  @relation("TransactionAcheteur")
+  transactionsVendeur  Transaction[]  @relation("TransactionVendeur")
+  avisDonnes          Avis[]         @relation("AvisAuteur")
+  avisRecus           Avis[]         @relation("AvisCible")
+  notifications       NotificationHistory[]
+  favoris             Favori[]
+
+  @@map("users")
+}
+
+// ─── Article ──────────────────────────────────────────────────────────────────
+model Article {
+  id          String       @id @default(cuid())
+  vendeurId   String
+  titre       String
+  description String       @db.Text
+  categorie   Categorie
+  etat        EtatArticle
+  prix        Float
+  ville       String?
+  photos      String[]
+  statut      StatutArticle @default(EN_LIGNE)
+  dateCreation DateTime    @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  vendeur    User           @relation(fields: [vendeurId], references: [id])
+  conversations Conversation[]
+  transactions  Transaction[]
+  favoris       Favori[]
+
+  @@map("articles")
+}
+
+// ─── Conversation ─────────────────────────────────────────────────────────────
+model Conversation {
+  id         String   @id @default(cuid())
+  articleId  String
+  acheteurId String
+  vendeurId  String
+  dateCreation DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  article  Article  @relation(fields: [articleId], references: [id])
+  acheteur User     @relation("ConversationAcheteur", fields: [acheteurId], references: [id])
+  vendeur  User     @relation("ConversationVendeur", fields: [vendeurId], references: [id])
+  messages Message[]
+
+  @@map("conversations")
+}
+
+// ─── Message ──────────────────────────────────────────────────────────────────
+model Message {
+  id             String      @id @default(cuid())
+  conversationId String
+  expediteurId   String
+  contenu        String      @db.Text
+  type           TypeMessage @default(TEXTE)
+  offrePrix      Float?
+  lu             Boolean     @default(false)
+  timestamp      DateTime    @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id])
+  expediteur   User         @relation(fields: [expediteurId], references: [id])
+
+  @@map("messages")
+}
+
+// ─── Transaction ──────────────────────────────────────────────────────────────
+model Transaction {
+  id              String        @id @default(cuid())
+  articleId       String
+  acheteurId      String
+  vendeurId       String
+  montant         Float
+  fraisService    Float         @default(0)
+  statutEscrow    StatutEscrow  @default(EN_ATTENTE)
+  moyenPaiement   MoyenPaiement
+  referencePaiement String?
+  dateCreation    DateTime      @default(now())
+  dateValidation  DateTime?
+  dateLimite      DateTime?
+  motifLitige     String?       @db.Text
+
+  article  Article @relation(fields: [articleId], references: [id])
+  acheteur User    @relation("TransactionAcheteur", fields: [acheteurId], references: [id])
+  vendeur  User    @relation("TransactionVendeur", fields: [vendeurId], references: [id])
+  avis     Avis?
+
+  @@map("transactions")
+}
+
+// ─── Favori ─────────────────────────────────────────────────────────────────────
+model Favori {
+  id        String   @id @default(cuid())
+  userId    String
+  articleId String
+  dateCreation DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id])
+  article Article @relation(fields: [articleId], references: [id])
+
+  @@unique([userId, articleId])
+  @@map("favoris")
+}
+
+// ─── NotificationHistory ───────────────────────────────────────────────────────
+model NotificationHistory {
+  id            String   @id @default(cuid())
+  userId        String
+  title         String
+  body          String
+  type          String?
+  data          Json?
+  status        String   @default("SENT") // SENT, DELIVERED, FAILED
+  fcmToken      String?
+  errorMessage  String?
+  dateCreation  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("notification_history")
+}
+
+// ─── Avis ─────────────────────────────────────────────────────────────────────
+model Avis {
+  id            String   @id @default(cuid())
+  transactionId String   @unique
+  auteurId      String
+  cibleId       String
+  note          Int
+  commentaire   String?  @db.Text
+  dateCreation  DateTime @default(now())
+
+  transaction Transaction @relation(fields: [transactionId], references: [id])
+  auteur      User        @relation("AvisAuteur", fields: [auteurId], references: [id])
+  cible       User        @relation("AvisCible", fields: [cibleId], references: [id])
+
+  @@map("avis")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+enum Categorie {
+  VETEMENTS
+  CHAUSSURES
+  ELECTRONIQUE
+  MAISON
+  AUTRES
+}
+
+enum EtatArticle {
+  NEUF
+  COMME_NEUF
+  BON_ETAT
+  SATISFAISANT
+}
+
+enum StatutArticle {
+  EN_LIGNE
+  VENDU
+  RESERVE
+  BROUILLON
+}
+
+enum TypeMessage {
+  TEXTE
+  OFFRE
+  SYSTEME
+}
+
+enum StatutEscrow {
+  EN_ATTENTE
+  BLOQUE
+  LIBERE
+  LITIGE
+  REMBOURSE
+}
+
+enum MoyenPaiement {
+  ORANGE_MONEY
+  MOOV_MONEY
+  WAVE
+}

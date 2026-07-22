@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+  # ─── Article Search Load Tests ───────────────────────────────────────────
+  k6-articles-search:
+    image: grafana/k6:latest
+    container_name: k6-articles-search
+    environment:
+      - API_URL=http://localhost:3000/api/v1
+    volumes:
+      - ./articles-search.test.js:/scripts/articles-search.test.js
+      - ./reports:/reports
+    command: run /scripts/articles-search.test.js --out json=/reports/articles-search-results.json
+    network_mode: host
+    profiles:
+      - load-test
+
+  # ─── Chat Load Tests ────────────────────────────────────────────────────
+  k6-chat:
+    image: grafana/k6:latest
+    container_name: k6-chat
+    environment:
+      - API_URL=http://localhost:3000/api/v1
+      - WS_URL=ws://localhost:3000
+    volumes:
+      - ./chat.test.js:/scripts/chat.test.js
+      - ./reports:/reports
+    command: run /scripts/chat.test.js --out json=/reports/chat-results.json
+    network_mode: host
+    profiles:
+      - load-test
+
+  # ─── All Tests (sequential) ─────────────────────────────────────────────
+  k6-all:
+    image: grafana/k6:latest
+    container_name: k6-all
+    environment:
+      - API_URL=http://localhost:3000/api/v1
+      - WS_URL=ws://localhost:3000
+    volumes:
+      - ./articles-search.test.js:/scripts/articles-search.test.js
+      - ./chat.test.js:/scripts/chat.test.js
+      - ./reports:/reports
+    command: >
+      sh -c "
+        k6 run /scripts/articles-search.test.js --out json=/reports/articles-search-results.json ;
+        echo '--- Articles search done ---' ;
+        k6 run /scripts/chat.test.js --out json=/reports/chat-results.json
+      "
+    network_mode: host
+    profiles:
+      - load-test-all
+
+  # ─── Smoke Test (quick validation) ──────────────────────────────────────
+  k6-smoke:
+    image: grafana/k6:latest
+    container_name: k6-smoke
+    environment:
+      - API_URL=http://localhost:3000/api/v1
+      - K6_SMOKE=true
+    volumes:
+      - ./articles-search.test.js:/scripts/articles-search.test.js
+      - ./reports:/reports
+    command: run /scripts/articles-search.test.js -e K6_SMOKE=true -u 2 -i 10 --duration 15s
+    network_mode: host
+    profiles:
+      - smoke
+
+  # ─── HTML Report Generator ──────────────────────────────────────────────
+  k6-report:
+    image: grafana/k6:latest
+    container_name: k6-report
+    volumes:
+      - ./reports:/reports
+    entrypoint:
+      - sh
+      - -c
+      - |
+        echo '📊 Résumé des tests de performance :'
+        echo ''
+        if [ -f /reports/articles-search-results.json ]; then
+          echo '=== RECHERCHE ARTICLES ==='
+          k6 run --summary-export=/reports/search-summary.json /scripts/articles-search.test.js 2>/dev/null || true
+          echo '  ✓ Rapport sauvegardé dans reports/'
+        fi
+        echo ''
+        echo 'Pour générer un rapport HTML complet :'
+        echo '  npx k6-to-html < reports/articles-search-results.json > reports/report.html'
+    profiles:
+      - report

@@ -1,0 +1,50 @@
+# ─── Bazario — Docker build context (.dockerignore) ──────────────────────────
+# Ignorer tout ce qui n'est pas nécessaire pour le build du backend
+
+# Git
+.git/
+.gitignore
+
+# Dépendances node (seront installées par npm ci dans le conteneur)
+node_modules/
+**/node_modules/
+
+# Environnement
+.env
+.env.*
+backend/.env
+mobile/.env
+
+# Builds et artefacts
+backend/dist/
+mobile/.expo/
+mobile/dist/
+mobile/android/
+mobile/ios/
+
+# Tests
+test/
+coverage/
+**/*.spec.ts
+**/*.test.ts
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Docs et autres
+*.md
+*.png
+*.jpg
+*.jpeg
+*.gif
+assets/
+load-tests/

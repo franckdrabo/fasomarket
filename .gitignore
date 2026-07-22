@@ -1,0 +1,40 @@
+# ─── Bazario — .gitignore ─────────────────────────────────────────────────
+
+# Dépendances
+node_modules/
+
+# Environnement (sensible — NE PAS COMMITTER !)
+.env
+.env.*
+!.env.example
+
+# Firebase credentials (sensible — NE PAS COMMITTER !)
+firebase-credentials.json
+
+# Build outputs
+backend/dist/
+mobile/.expo/
+mobile/dist/
+mobile/android/
+mobile/ios/
+
+# Docker
+nginx/ssl/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Tests
+coverage/
+
+# Load tests reports
+backend/load-tests/reports/

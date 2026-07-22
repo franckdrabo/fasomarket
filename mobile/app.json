@@ -1,0 +1,82 @@
+{
+  "expo": {
+    "name": "Bazario",
+    "slug": "bazario",
+    "owner": "stromridens-team",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "bazario",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#FF6B35",
+      "image": "./assets/splash.png",
+      "resizeMode": "contain"
+    },
+    "notification": {
+      "icon": "./assets/notification-icon.png",
+      "color": "#FF6B35",
+      "iosDisplayInForeground": true
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.bazario.app",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Utiliser Face ID pour se connecter rapidement à Bazario"
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#FF6B35",
+        "foregroundImage": "./assets/adaptive-icon.png"
+      },
+      "package": "com.bazario.app",
+      "permissions": [
+        "USE_BIOMETRIC",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
+        "POST_NOTIFICATIONS"
+      ]
+    },
+    "updates": {
+      "url": "https://u.expo.dev/aa3fb2ee-7a71-4ba1-b41a-07ae2f7e433f",
+      "fallbackToCacheTimeout": 0,
+      "enabled": true
+    },
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "aa3fb2ee-7a71-4ba1-b41a-07ae2f7e433f"
+      },
+      "apiUrl": {
+        "development": "http://10.0.2.2:3000/api/v1",
+        "staging": "https://staging-api.bazario.com/api/v1",
+        "production": "https://api.bazario.com/api/v1"
+      }
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Utiliser Face ID pour se connecter rapidement à Bazario"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#FF6B35"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Bazario a besoin d'accéder à vos photos pour ajouter des images à vos annonces."
+        }
+      ]
+    ]
+  }
+}

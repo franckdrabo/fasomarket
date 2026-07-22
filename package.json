@@ -1,0 +1,18 @@
+{
+  "name": "bazario",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bazario - Marketplace mobile C2C pour l'Afrique de l'Ouest",
+  "workspaces": [
+    "backend",
+    "mobile"
+  ],
+  "scripts": {
+    "backend:dev": "npm run start:dev -w backend",
+    "backend:build": "npm run build -w backend",
+    "mobile:start": "npm run start -w mobile",
+    "prisma:generate": "npm run prisma:generate -w backend",
+    "prisma:migrate": "npm run prisma:migrate -w backend",
+    "prisma:studio": "npm run prisma:studio -w backend"
+  }
+}
