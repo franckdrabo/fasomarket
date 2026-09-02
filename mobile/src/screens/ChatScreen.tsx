@@ -19,10 +19,13 @@ import {
   joinConversation,
   sendMessage,
   sendTyping,
+  markRead,
   onNewMessage,
   onTyping,
+  onMessagesRead,
   ChatMessage,
   TypingEvent,
+  MessagesReadEvent,
 } from '../services/socket';
 import { api } from '../services/api';
 import { useAuthStore } from '../stores/authStore';
@@ -48,6 +51,7 @@ export default function ChatScreen({ conversation, onBack }: Props) {
   const [showOfferInput, setShowOfferInput] = useState(false);
   const [otherUserTyping, setOtherUserTyping] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
+  const [lastReadAt, setLastReadAt] = useState<string | null>(null);
   const flatListRef = useRef<FlatList>(null);
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
   const { user } = useAuthStore();
@@ -61,6 +65,7 @@ export default function ChatScreen({ conversation, onBack }: Props) {
   useEffect(() => {
     let unsubscribeMessage: (() => void) | undefined;
     let unsubscribeTyping: (() => void) | undefined;
+    let unsubscribeRead: (() => void) | undefined;
 
     async function init() {
       try {
@@ -74,6 +79,11 @@ export default function ChatScreen({ conversation, onBack }: Props) {
         unsubscribeMessage = onNewMessage((message: ChatMessage) => {
           setMessages((prev) => [...prev, message as MessageData]);
           setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+
+          // Si le message est de l'autre participant, marquer comme lu immédiatement
+          if (message.expediteurId !== user?.id) {
+            markRead(conversation.id);
+          }
         });
 
         // Écouter le statut de frappe
@@ -87,11 +97,29 @@ export default function ChatScreen({ conversation, onBack }: Props) {
           }
         });
 
+        // Écouter les accusés de réception
+        unsubscribeRead = onMessagesRead((event: MessagesReadEvent) => {
+          if (event.conversationId === conversation.id && event.readBy !== user?.id) {
+            setLastReadAt(event.readAt);
+            // Mettre à jour le statut 'lu' de nos messages envoyés
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.expediteurId === user?.id && !msg.lu
+                  ? { ...msg, lu: true }
+                  : msg,
+              ),
+            );
+          }
+        });
+
         // Charger les messages existants depuis le backend
         try {
           const data = await api.messages.getByConversation(conversation.id) as MessageData[];
           const history = Array.isArray(data) ? data : [];
           setMessages(history.length > 0 ? history : buildMockMessages());
+
+          // Marquer les messages comme lus à l'ouverture de la conversation
+          markRead(conversation.id);
         } catch (error) {
           // Backend injoignable → repli sur les messages de démo
           console.warn('Chat: backend injoignable, messages de démo affichés');
@@ -107,6 +135,7 @@ export default function ChatScreen({ conversation, onBack }: Props) {
     return () => {
       unsubscribeMessage?.();
       unsubscribeTyping?.();
+      unsubscribeRead?.();
       if (typingTimeout.current) clearTimeout(typingTimeout.current);
     };
   }, [conversation.id]);
@@ -194,14 +223,25 @@ export default function ChatScreen({ conversation, onBack }: Props) {
     Alert.alert('Offre refusée');
   }
 
-  function renderItem({ item }: { item: MessageData }) {
+  function renderItem({ item, index }: { item: MessageData; index: number }) {
+    const isLastMessage = index === messages.length - 1;
+    const isLastSentByMe = isOwn(item.expediteurId) && (
+      index === messages.length - 1 || !isOwn(messages[index + 1]?.expediteurId)
+    );
+    const showReadIndicator = isLastSentByMe && item.lu && lastReadAt;
+
     return (
-      <MessageBubble
-        message={item}
-        isOwn={isOwn(item.expediteurId)}
-        onAcceptOffer={handleAcceptOffer}
-        onDeclineOffer={handleDeclineOffer}
-      />
+      <View>
+        <MessageBubble
+          message={item}
+          isOwn={isOwn(item.expediteurId)}
+          onAcceptOffer={handleAcceptOffer}
+          onDeclineOffer={handleDeclineOffer}
+        />
+        {showReadIndicator && isLastMessage && (
+          <Text style={styles.readIndicator}>Vu</Text>
+        )}
+      </View>
     );
   }
 
@@ -600,5 +640,16 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: colors.primary,
     fontWeight: '600',
+  },
+
+  // Read indicator
+  readIndicator: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    fontStyle: 'italic',
+    textAlign: 'right',
+    marginRight: spacing.md,
+    marginBottom: spacing.sm,
+    fontSize: 11,
   },
 });

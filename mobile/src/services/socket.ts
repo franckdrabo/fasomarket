@@ -139,6 +139,37 @@ export function onTyping(callback: (event: TypingEvent) => void) {
 }
 
 /**
+ * Signaler que les messages d'une conversation ont été lus
+ */
+export function markRead(conversationId: string) {
+  socket?.emit('markRead', { conversationId });
+}
+
+/**
+ * Interface pour l'événement messagesRead
+ */
+export interface MessagesReadEvent {
+  conversationId: string;
+  readBy: string;
+  readAt: string;
+}
+
+/**
+ * Écouter les accusés de réception (messages lus par l'autre participant)
+ */
+export function onMessagesRead(callback: (event: MessagesReadEvent) => void) {
+  const event = 'messagesRead';
+  if (!listeners.has(event)) listeners.set(event, new Set());
+  listeners.get(event)!.add(callback);
+  socket?.on(event, callback);
+
+  return () => {
+    listeners.get(event)?.delete(callback);
+    socket?.off(event, callback);
+  };
+}
+
+/**
  * Réinitialiser les listeners et se reconnecter
  */
 export async function reconnectSocket() {

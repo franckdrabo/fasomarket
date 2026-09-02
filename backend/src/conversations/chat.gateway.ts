@@ -188,4 +188,47 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       isTyping: data.isTyping,
     });
   }
+
+  @SubscribeMessage('markRead')
+  async handleMarkRead(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { conversationId: string },
+  ) {
+    const userId = client.data.userId;
+    if (!userId) return;
+
+    // Vérifier que l'utilisateur participe à cette conversation
+    const conversation = await this.prisma.conversation.findUnique({
+      where: { id: data.conversationId },
+    });
+    if (!conversation || (conversation.acheteurId !== userId && conversation.vendeurId !== userId)) {
+      return;
+    }
+
+    // Marquer tous les messages non lus de l'expéditeur comme lus
+    const updated = await this.prisma.message.updateMany({
+      where: {
+        conversationId: data.conversationId,
+        expediteurId: { not: userId },
+        lu: false,
+      },
+      data: { lu: true },
+    });
+
+    // Si des messages ont été marqués comme lus, notifier l'autre participant
+    if (updated.count > 0) {
+      const destinataireId =
+        conversation.acheteurId === userId
+          ? conversation.vendeurId
+          : conversation.acheteurId;
+
+      this.server.to(`conv:${data.conversationId}`).emit('messagesRead', {
+        conversationId: data.conversationId,
+        readBy: userId,
+        readAt: new Date().toISOString(),
+      });
+
+      this.logger.debug(`📖 Messages lus dans ${data.conversationId} par ${userId}`);
+    }
+  }
 }
