@@ -122,7 +122,7 @@ export default function PaymentScreen({ article, onBack, onPaymentComplete }: Pr
         moyenPaiement: selectedProvider,
       });
 
-      // 3. Initier le paiement mobile money (CinetPay)
+      // 3. Initier le paiement mobile money (LigdiCash)
       const fullPhone = `${selectedCountry.code}${phoneNumber}`;
       const initiated = await api.payments.initiateMobileMoney(
         transaction.id,
@@ -130,7 +130,7 @@ export default function PaymentScreen({ article, onBack, onPaymentComplete }: Pr
         selectedProvider,
       );
 
-      // Ouvrir la page de paiement sécurisée CinetPay
+      // Ouvrir la page de paiement sécurisée LigdiCash
       if (initiated.paymentUrl) {
         Linking.openURL(initiated.paymentUrl).catch(() => {});
       }

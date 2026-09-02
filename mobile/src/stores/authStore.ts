@@ -184,7 +184,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   initiateSellerActivation: async (telephone: string, operateur: string) => {
-    // Initier le paiement de 1000 FCFA via CinetPay → l'utilisateur paie sur la page sécurisée
+    // Initier le paiement de 1000 FCFA via LigdiCash → l'utilisateur paie sur la page sécurisée
     const initiated = await api.auth.activateSeller(telephone, operateur);
     if (!initiated.providerReference) {
       throw new Error('Référence de paiement manquante');

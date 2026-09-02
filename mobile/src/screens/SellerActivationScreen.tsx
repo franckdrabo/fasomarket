@@ -112,12 +112,12 @@ export default function SellerActivationScreen({ onComplete, onSkip }: Props) {
     setLoading(true);
     try {
       const fullPhone = `${selectedCountry.code}${phoneNumber}`;
-      // Étape 1 : initier le paiement de 1000 FCFA via CinetPay
+      // Étape 1 : initier le paiement de 1000 FCFA via LigdiCash
       const { reference, paymentUrl: url } = await initiateSellerActivation(fullPhone, selectedOperator);
       setPaymentRef(reference);
       setPaymentUrl(url || null);
 
-      // Mode réel : ouvrir la page de paiement sécurisée CinetPay
+      // Mode réel : ouvrir la page de paiement sécurisée LigdiCash
       // puis attendre la confirmation manuelle de l'utilisateur
       if (url) {
         Linking.openURL(url).catch(() => {});
@@ -125,7 +125,7 @@ export default function SellerActivationScreen({ onComplete, onSkip }: Props) {
         return;
       }
 
-      // Mode simulation (dev, pas de clé CinetPay) : pas de page externe.
+      // Mode simulation (dev, pas de clé LigdiCash) : pas de page externe.
       // On confirme automatiquement le paiement simulé.
       await checkAndActivate(reference);
     } catch (error: any) {
