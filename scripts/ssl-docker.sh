@@ -1,6 +1,6 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════════════════════
-# Bazario — SSL Let's Encrypt via Docker (SANS sudo)
+# FasoMarket — SSL Let's Encrypt via Docker (SANS sudo)
 # ═══════════════════════════════════════════════════════════════════════════════
 # Alternative à scripts/setup-ssl.sh pour les machines où `sudo` n'est pas
 # disponible. Utilise l'image officielle certbot/certbot avec le mode `webroot` :
@@ -31,8 +31,8 @@ step()  { echo -e "\n${BLUE}━━━ $1 ━━━${NC}"; }
 # ─── Configuration ───────────────────────────────────────────────────────────
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
-DOMAIN="${DOMAIN:-api.bazario.com}"
-EMAIL="${EMAIL:-admin@bazario.com}"
+DOMAIN="${DOMAIN:-api.fasomarket.com}"
+EMAIL="${EMAIL:-admin@fasomarket.com}"
 
 # Répertoires locaux (montés dans le conteneur certbot)
 CERTBOT_DATA="${PROJECT_DIR}/nginx/certbot_data"   # webroot servi par nginx
@@ -49,7 +49,7 @@ CERTBOT_IMAGE="certbot/certbot"
 show_help() {
     cat <<EOF
 ╔════════════════════════════════════════════════════════════════════╗
-║     Bazario — SSL Let's Encrypt via Docker (sans sudo)            ║
+║     FasoMarket — SSL Let's Encrypt via Docker (sans sudo)            ║
 ╚════════════════════════════════════════════════════════════════════╝
 
 Usage:
@@ -114,7 +114,7 @@ check_dns() {
 
 check_nginx() {
     step "Vérification Nginx (port 80 pour le challenge ACME)"
-    if ! docker ps --format '{{.Names}}' 2>/dev/null | grep -q '^bazario-nginx$'; then
+    if ! docker ps --format '{{.Names}}' 2>/dev/null | grep -q '^fasomarket-nginx$'; then
         info "Démarrage de nginx (docker compose --no-deps)..."
         (cd "$PROJECT_DIR" && docker compose --profile with-proxy up -d --no-deps nginx 2>&1 | tail -2)
     fi
@@ -240,8 +240,8 @@ deploy_certs() {
     ok "Certificats copiés : cert.pem (644) + key.pem (600)"
 
     info "Rechargement de nginx..."
-    docker exec bazario-nginx nginx -s reload >/dev/null 2>&1 && ok "Nginx rechargé" \
-        || warn "Rechargez nginx manuellement : docker exec bazario-nginx nginx -s reload"
+    docker exec fasomarket-nginx nginx -s reload >/dev/null 2>&1 && ok "Nginx rechargé" \
+        || warn "Rechargez nginx manuellement : docker exec fasomarket-nginx nginx -s reload"
 
     local expiry
     expiry=$(openssl x509 -in "$SSL_DIR/cert.pem" -noout -enddate 2>/dev/null | cut -d= -f2-)
@@ -257,7 +257,7 @@ install_auto_renew() {
     local cron_line="0 3 * * * cd ${PROJECT_DIR} && ./scripts/ssl-docker.sh --renew >> ${RENEW_LOG} 2>&1"
 
     if crontab -l 2>/dev/null | grep -q 'ssl-docker.sh --renew'; then
-        warn "Un cron Bazario existe déjà :"
+        warn "Un cron FasoMarket existe déjà :"
         crontab -l 2>/dev/null | grep 'ssl-docker.sh --renew'
         return 0
     fi

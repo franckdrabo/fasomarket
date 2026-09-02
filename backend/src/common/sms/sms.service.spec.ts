@@ -53,9 +53,9 @@ describe('SmsService', () => {
     });
 
     it("devrait envoyer via Africastalking quand configuré (avec sender ID)", async () => {
-      process.env.AT_USERNAME = 'bazario';
+      process.env.AT_USERNAME = 'fasomarket';
       process.env.AT_API_KEY = 'test-key';
-      process.env.AT_SENDER_ID = 'BAZARIO';
+      process.env.AT_SENDER_ID = 'FASOMARKET';
       (httpService.post as jest.Mock).mockReturnValue(
         of({ data: { SMSMessageData: { Recipients: [{ status: 'Success' }] } } }),
       );
@@ -65,7 +65,7 @@ describe('SmsService', () => {
       expect(sent).toBe(true);
       expect(httpService.post).toHaveBeenCalledWith(
         'https://api.africastalking.com/version1/messaging',
-        'username=bazario&to=%2B2250708091011&message=Code%3A+123456&from=BAZARIO',
+        'username=fasomarket&to=%2B2250708091011&message=Code%3A+123456&from=FASOMARKET',
         expect.objectContaining({
           headers: expect.objectContaining({
             apiKey: 'test-key',
@@ -77,7 +77,7 @@ describe('SmsService', () => {
     });
 
     it('devrait envoyer sans from si aucun AT_SENDER_ID', async () => {
-      process.env.AT_USERNAME = 'bazario';
+      process.env.AT_USERNAME = 'fasomarket';
       process.env.AT_API_KEY = 'test-key';
       (httpService.post as jest.Mock).mockReturnValue(of({} as any));
 
@@ -85,13 +85,13 @@ describe('SmsService', () => {
 
       expect(httpService.post).toHaveBeenCalledWith(
         'https://api.africastalking.com/version1/messaging',
-        'username=bazario&to=%2B2250708091011&message=Test',
+        'username=fasomarket&to=%2B2250708091011&message=Test',
         expect.anything(),
       );
     });
 
     it("devrait retourner false si l'appel HTTP échoue", async () => {
-      process.env.AT_USERNAME = 'bazario';
+      process.env.AT_USERNAME = 'fasomarket';
       process.env.AT_API_KEY = 'test-key';
       (httpService.post as jest.Mock).mockReturnValue(
         throwError(() => new Error('API down')),
@@ -107,7 +107,7 @@ describe('SmsService', () => {
 
   describe('sendOtpCode', () => {
     it('devrait construire un message contenant le code OTP', async () => {
-      process.env.AT_USERNAME = 'bazario';
+      process.env.AT_USERNAME = 'fasomarket';
       process.env.AT_API_KEY = 'test-key';
       (httpService.post as jest.Mock).mockReturnValue(of({} as any));
 

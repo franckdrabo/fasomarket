@@ -3,7 +3,7 @@ import { getAccessToken } from './api';
 
 const SOCKET_URL = __DEV__
   ? 'http://192.168.1.70:3000/chat'
-  : 'https://api.bazario.com/chat';
+  : 'https://api.fasomarket.com/chat';
 
 let socket: Socket | null = null;
 let listeners: Map<string, Set<(...args: any[]) => void>> = new Map();

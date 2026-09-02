@@ -201,7 +201,7 @@ export default function RegisterScreen({ onBackToLogin, onComplete }: RegisterSc
                   <Ionicons name="person-add" size={28} color="#fff" />
                 </View>
               </LinearGradient>
-              <Text style={styles.appName}>Bazario</Text>
+              <Text style={styles.appName}>FasoMarket</Text>
               <Text style={styles.tagline}>Créez votre compte en quelques étapes</Text>
             </View>
 

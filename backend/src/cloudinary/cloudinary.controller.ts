@@ -23,7 +23,7 @@ export class CloudinaryController {
   @ApiOperation({ summary: 'Uploader une image', description: 'Upload une image vers Cloudinary (max 10 MB, formats: JPEG, PNG, WebP, GIF).' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({ schema: { type: 'object', properties: { file: { type: 'string', format: 'binary' } } } })
-  @ApiCreatedResponse({ description: 'URL de l\'image uploadée', schema: { example: { url: 'https://res.cloudinary.com/...', publicId: 'bazario/abc123' } } })
+  @ApiCreatedResponse({ description: 'URL de l\'image uploadée', schema: { example: { url: 'https://res.cloudinary.com/...', publicId: 'fasomarket/abc123' } } })
   @UseInterceptors(
     FileInterceptor('file', {
       limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB

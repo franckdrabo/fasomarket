@@ -17,7 +17,7 @@ export class CloudinaryService {
    */
   async uploadFile(
     file: Express.Multer.File,
-    folder: string = 'bazario',
+    folder: string = 'fasomarket',
   ): Promise<{ url: string; publicId: string }> {
     if (!file) {
       throw new BadRequestException('Aucun fichier fourni');
@@ -70,7 +70,7 @@ export class CloudinaryService {
    */
   async uploadFiles(
     files: Express.Multer.File[],
-    folder: string = 'bazario',
+    folder: string = 'fasomarket',
   ): Promise<{ url: string; publicId: string }[]> {
     const uploads = files.map((file) => this.uploadFile(file, folder));
     return Promise.all(uploads);

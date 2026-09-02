@@ -1,4 +1,4 @@
-package com.stro_rien.bazario
+package com.fasomarket.app
 
 import android.os.Build
 import android.os.Bundle

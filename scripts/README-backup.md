@@ -1,4 +1,4 @@
-# 🗄️ Sauvegarde PostgreSQL — Bazario
+# 🗄️ Sauvegarde PostgreSQL — FasoMarket
 
 Script de sauvegarde automatisée pour la base de données PostgreSQL avec rotation, notifications Slack, et upload S3 optionnel.
 
@@ -7,7 +7,7 @@ Script de sauvegarde automatisée pour la base de données PostgreSQL avec rotat
 ## 📋 Prérequis
 
 - **Docker** — le script se connecte au conteneur PostgreSQL via `docker exec`
-- **Conteneur PostgreSQL** en cours d'exécution (`bazario-db` par défaut)
+- **Conteneur PostgreSQL** en cours d'exécution (`fasomarket-db` par défaut)
 - **Espace disque** — prévoir au moins 2× la taille de la base pour les backups
 
 ## 🚀 Utilisation rapide
@@ -20,7 +20,7 @@ Script de sauvegarde automatisée pour la base de données PostgreSQL avec rotat
 
 Les sauvegardes sont créées dans `./backups/` avec le format :
 ```
-bazario_2026-01-15_030002.sql.gz
+fasomarket_2026-01-15_030002.sql.gz
 ```
 
 ### 2. Backup automatique quotidien
@@ -50,7 +50,7 @@ Installe un cron qui sauvegarde la base **tous les jours à 3h du matin**.
 ./scripts/backup-db.sh --restore latest
 
 # Restaurer un fichier spécifique
-./scripts/backup-db.sh --restore ./backups/bazario_2026-01-15_030002.sql.gz
+./scripts/backup-db.sh --restore ./backups/fasomarket_2026-01-15_030002.sql.gz
 ```
 
 > ⚠️ La restauration **écrase toutes les données** existantes dans la base.
@@ -65,7 +65,7 @@ Ajoutez ces variables dans le fichier `.env` à la racine du projet :
 
 ```bash
 # Répertoire des backups (défaut: ./backups/)
-BACKUP_DIR=/home/bazario/backups
+BACKUP_DIR=/home/fasomarket/backups
 
 # Rétention : nombre de backups à conserver (défaut: 14)
 RETENTION_COUNT=30
@@ -74,7 +74,7 @@ RETENTION_COUNT=30
 SLACK_WEBHOOK_URL=https://hooks.slack.com/services/XXX/YYY/ZZZ
 
 # Bucket S3 pour upload distant (optionnel)
-S3_BUCKET=s3://bazario-backups-prod
+S3_BUCKET=s3://fasomarket-backups-prod
 
 # Expression cron pour le backup automatique (défaut: tous les jours à 3h)
 BACKUP_CRON_SCHEDULE="0 3 * * *"
@@ -94,10 +94,10 @@ Le script conserve par défaut les **14 dernières sauvegardes** et supprime aut
 
 ```
 backups/
-├── bazario_2026-01-15_030002.sql.gz
-├── bazario_2026-01-14_030001.sql.gz
-├── bazario_2026-01-13_030002.sql.gz
-├── bazario_2026-01-12_030003.sql.gz
+├── fasomarket_2026-01-15_030002.sql.gz
+├── fasomarket_2026-01-14_030001.sql.gz
+├── fasomarket_2026-01-13_030002.sql.gz
+├── fasomarket_2026-01-12_030003.sql.gz
 ├── cron.log        ← Logs du cron
 └── backup-history.log  ← Historique des opérations
 ```
@@ -116,7 +116,7 @@ sudo apt-get install awscli
 aws configure
 
 # Configurer dans .env
-S3_BUCKET=s3://bazario-backups-prod
+S3_BUCKET=s3://fasomarket-backups-prod
 
 # Tester
 ./scripts/backup-db.sh
@@ -130,7 +130,7 @@ sudo -v ; curl https://rclone.org/install.sh | sudo bash
 rclone config
 
 # Configurer dans .env
-S3_BUCKET=bazario-s3:backups
+S3_BUCKET=fasomarket-s3:backups
 
 # Tester
 ./scripts/backup-db.sh
@@ -180,11 +180,11 @@ Vous pouvez aussi l'appeler manuellement :
 Exemple de sortie :
 ```
 ━━━ État du système de backup ━━━
-✅ Répertoire : /home/bazario/backups (2.3G)
-✅ Conteneur  : bazario-db (en cours d'exécution)
-✅ Dernier backup : bazario_2026-01-15_030002.sql.gz (158M, 2026-01-15 03:00:02)
+✅ Répertoire : /home/fasomarket/backups (2.3G)
+✅ Conteneur  : fasomarket-db (en cours d'exécution)
+✅ Dernier backup : fasomarket_2026-01-15_030002.sql.gz (158M, 2026-01-15 03:00:02)
 ✅ Rétention : 14 sauvegardes
-✅ S3        : s3://bazario-backups-prod
+✅ S3        : s3://fasomarket-backups-prod
 ✅ Slack     : configuré
 ✅ Cron      : installé
 ```

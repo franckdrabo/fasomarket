@@ -62,7 +62,7 @@ export class EncryptionService {
         '⚠️  ENCRYPTION_KEY n\'est pas une clé hexadécimale valide (64 hex). ' +
         'Dérivation via scrypt — préférez openssl rand -hex 32',
       );
-      this.key = crypto.scryptSync(rawKey, 'encryption-salt-bazario', 32);
+      this.key = crypto.scryptSync(rawKey, 'encryption-salt-fasomarket', 32);
     }
   }
 

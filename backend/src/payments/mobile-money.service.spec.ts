@@ -13,7 +13,7 @@ describe('CinetPayService', () => {
     process.env.CINETPAY_API_KEY = 'test-apikey';
     process.env.CINETPAY_SITE_ID = SITE_ID;
     process.env.CINETPAY_API_URL = 'https://api-checkout.cinetpay.com';
-    process.env.CINETPAY_NOTIFY_URL = 'https://api.bazario.com/api/v1/payments/webhook/cinetpay';
+    process.env.CINETPAY_NOTIFY_URL = 'https://api.fasomarket.com/api/v1/payments/webhook/cinetpay';
 
     httpService = { post: jest.fn() };
     service = new CinetPayService(httpService as unknown as HttpService);

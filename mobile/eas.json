@@ -23,7 +23,7 @@
       },
       "env": {
         "APP_ENV": "production",
-        "API_URL": "https://api.bazario.com/api/v1"
+        "API_URL": "https://api.fasomarket.com/api/v1"
       }
     },
     "production": {
@@ -37,7 +37,7 @@
       },
       "env": {
         "APP_ENV": "production",
-        "API_URL": "https://api.bazario.com/api/v1"
+        "API_URL": "https://api.fasomarket.com/api/v1"
       }
     }
   },

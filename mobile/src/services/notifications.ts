@@ -76,7 +76,7 @@ export async function initNotifications() {
 
 // ─── Stockage local ────────────────────────────────────────────────────────
 
-const PUSH_TOKEN_KEY = '@bazario/pushToken';
+const PUSH_TOKEN_KEY = '@fasomarket/pushToken';
 
 async function getStoredPushToken(): Promise<string | null> {
   return AsyncStorage.getItem(PUSH_TOKEN_KEY);
@@ -100,16 +100,16 @@ async function setupNotificationChannels() {
   const Expo = getExpo();
   if (!Expo) return;
 
-  await Expo.setNotificationChannelAsync('bazario_default', {
+  await Expo.setNotificationChannelAsync('fasomarket_default', {
     name: 'Notifications générales',
-    description: 'Notifications importantes de Bazario',
+    description: 'Notifications importantes de FasoMarket',
     importance: Expo.AndroidImportance.HIGH,
     vibrationPattern: [0, 100, 100, 100],
     lightColor: '#FF6B35',
     sound: 'default',
   });
 
-  await Expo.setNotificationChannelAsync('bazario_messages', {
+  await Expo.setNotificationChannelAsync('fasomarket_messages', {
     name: 'Messages',
     description: 'Nouveaux messages de vos conversations',
     importance: Expo.AndroidImportance.HIGH,
@@ -119,7 +119,7 @@ async function setupNotificationChannels() {
     enableVibrate: true,
   });
 
-  await Expo.setNotificationChannelAsync('bazario_transactions', {
+  await Expo.setNotificationChannelAsync('fasomarket_transactions', {
     name: 'Transactions',
     description: 'Paiements, confirmations et litiges',
     importance: Expo.AndroidImportance.HIGH,
@@ -129,7 +129,7 @@ async function setupNotificationChannels() {
     enableVibrate: true,
   });
 
-  await Expo.setNotificationChannelAsync('bazario_promotions', {
+  await Expo.setNotificationChannelAsync('fasomarket_promotions', {
     name: 'Promotions',
     description: 'Offres et recommandations',
     importance: Expo.AndroidImportance.LOW,

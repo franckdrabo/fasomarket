@@ -172,7 +172,7 @@ export default function SellerActivationScreen({ onComplete, onSkip }: Props) {
       setPaymentUrl(null);
       Alert.alert(
         'Compte vendeur activé ! 🎉',
-        'Votre paiement a été confirmé. Vous pouvez maintenant publier des annonces et vendre sur Bazario.',
+        'Votre paiement a été confirmé. Vous pouvez maintenant publier des annonces et vendre sur FasoMarket.',
         [{ text: "C'est parti !", onPress: onComplete }],
       );
     } catch (confirmError: any) {

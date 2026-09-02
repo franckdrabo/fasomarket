@@ -15,7 +15,7 @@ export default function SearchBar({
   value,
   onChangeText,
   onSubmit,
-  placeholder = 'Rechercher sur Bazario...',
+  placeholder = 'Rechercher sur FasoMarket...',
 }: Props) {
   return (
     <FadeInView delay={100} duration={400}>

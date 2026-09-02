@@ -127,7 +127,7 @@ export class AuthService {
       montant: this.SELLER_ACTIVATION_FEE,
       telephone,
       reference,
-      description: 'Frais activation compte vendeur Bazario',
+      description: 'Frais activation compte vendeur FasoMarket',
       operateur,
     });
 

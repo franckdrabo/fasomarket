@@ -172,7 +172,7 @@ const AppNavigator = forwardRef<AppNavigatorRef, {}>(function AppNavigator(_prop
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={styles.loadingText}>Bazario...</Text>
+        <Text style={styles.loadingText}>FasoMarket...</Text>
       </View>
     );
   }

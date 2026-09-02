@@ -84,7 +84,7 @@ export class NotificationsService {
         android: {
           priority: 'high',
           notification: {
-            channelId: 'bazario_default',
+            channelId: 'fasomarket_default',
             sound: 'default',
             priority: 'high',
           },

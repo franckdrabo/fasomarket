@@ -1,4 +1,4 @@
-# ─── Bazario — Docker Compose Production ──────────────────────────────────────
+# ─── FasoMarket — Docker Compose Production ──────────────────────────────────────
 # Usage:
 #   1. Créer le fichier .env.prod avec les variables d'environnement
 #   2. docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
@@ -12,27 +12,27 @@ services:
   # ─── PostgreSQL ─────────────────────────────────────────────────────────────
   postgres:
     image: postgres:16-alpine
-    container_name: bazario-db
+    container_name: fasomarket-db
     restart: unless-stopped
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: ${DB_USER:-bazario}
+      POSTGRES_USER: ${DB_USER:-fasomarket}
       POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD requis}
-      POSTGRES_DB: ${DB_NAME:-bazario}
+      POSTGRES_DB: ${DB_NAME:-fasomarket}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-bazario}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-fasomarket}"]
       interval: 10s
       timeout: 5s
       retries: 5
     # Ne pas exposer le port 5432 en prod — accès uniquement via le réseau Docker
     networks:
-      - bazario-internal
+      - fasomarket-internal
 
   # ─── Redis ──────────────────────────────────────────────────────────────────
   redis:
     image: redis:7-alpine
-    container_name: bazario-redis
+    container_name: fasomarket-redis
     restart: unless-stopped
     volumes:
       - redis_data:/data
@@ -43,14 +43,14 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - bazario-internal
+      - fasomarket-internal
 
   # ─── Backend NestJS ─────────────────────────────────────────────────────────
   backend:
     build:
       context: .
       dockerfile: backend/Dockerfile
-    container_name: bazario-api
+    container_name: fasomarket-api
     restart: unless-stopped
     depends_on:
       postgres:
@@ -60,7 +60,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
-      DATABASE_URL: "postgresql://${DB_USER:-bazario}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-bazario}?schema=public&connection_limit=20&pool_timeout=10"
+      DATABASE_URL: "postgresql://${DB_USER:-fasomarket}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-fasomarket}?schema=public&connection_limit=20&pool_timeout=10"
       REDIS_URL: "redis://:${REDIS_PASSWORD}@redis:6379"
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET requis}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?JWT_REFRESH_SECRET requis}
@@ -70,7 +70,7 @@ services:
       API_SECRET: ${API_SECRET:-}
       WEBHOOK_SECRET: ${WEBHOOK_SECRET:-}
       REQUIRE_WEBHOOK_SIGNATURE: ${REQUIRE_WEBHOOK_SIGNATURE:-false}
-      CORS_ORIGIN: ${CORS_ORIGIN:-https://api.bazario.com}
+      CORS_ORIGIN: ${CORS_ORIGIN:-https://api.fasomarket.com}
       CINETPAY_API_KEY: ${CINETPAY_API_KEY:-}
       CINETPAY_SITE_ID: ${CINETPAY_SITE_ID:-}
       CINETPAY_API_URL: ${CINETPAY_API_URL:-}
@@ -86,18 +86,18 @@ services:
       SMTP_PORT: ${SMTP_PORT:-465}
       SMTP_USER: ${SMTP_USER:?SMTP_USER requis (email d'envoi OTP)}
       SMTP_PASS: ${SMTP_PASS:?SMTP_PASS requis (App Password Gmail)}
-      SMTP_FROM: ${SMTP_FROM:-Bazario}
+      SMTP_FROM: ${SMTP_FROM:-FasoMarket}
       FIREBASE_SERVICE_ACCOUNT_PATH: /app/firebase-credentials.json
     volumes:
       - ./firebase-credentials.json:/app/firebase-credentials.json:ro
     networks:
-      - bazario-internal
-      - bazario-public
+      - fasomarket-internal
+      - fasomarket-public
 
   # ─── Nginx Reverse Proxy ────────────────────────────────────────────────────
   nginx:
     image: nginx:alpine
-    container_name: bazario-nginx
+    container_name: fasomarket-nginx
     restart: unless-stopped
     depends_on:
       - backend
@@ -109,18 +109,18 @@ services:
       - ./nginx/ssl:/etc/nginx/ssl:ro
       - nginx_data:/var/www/certbot
     networks:
-      - bazario-public
+      - fasomarket-public
 
 volumes:
   postgres_data:
-    name: bazario_postgres_data
+    name: fasomarket_postgres_data
   redis_data:
-    name: bazario_redis_data
+    name: fasomarket_redis_data
   nginx_data:
-    name: bazario_nginx_data
+    name: fasomarket_nginx_data
 
 networks:
-  bazario-internal:
+  fasomarket-internal:
     driver: bridge
-  bazario-public:
+  fasomarket-public:
     driver: bridge

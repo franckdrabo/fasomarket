@@ -1,4 +1,4 @@
-# 🔑 Guide de configuration des clés API — Bazario
+# 🔑 Guide de configuration des clés API — FasoMarket
 
 ## Vue d'ensemble
 
@@ -23,7 +23,7 @@
    - Dashboard → **Paramètres** → **Développeur** → `API Key`
 5. **Configurer le webhook** :
    - Dashboard → **Paramètres** → **Notifications**
-   - URL : `https://api.bazario.com/api/v1/payments/webhook/cinetpay`
+   - URL : `https://api.fasomarket.com/api/v1/payments/webhook/cinetpay`
    - Méthode : POST
 
 ### Variables à remplir dans `.env.prod`
@@ -38,7 +38,7 @@ CINETPAY_SITE_ID=votre_site_id_ici
 ```bash
 # En dev, sans clé → simulation automatique
 # En prod, le paiement redirige vers la page CinetPay
-curl -X POST https://api.bazario.com/api/v1/auth/activate-seller \
+curl -X POST https://api.fasomarket.com/api/v1/auth/activate-seller \
   -H "Authorization: Bearer VOTRE_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"telephone": "+2250708091011", "operateur": "ORANGE_MONEY"}'
@@ -55,7 +55,7 @@ curl -X POST https://api.bazario.com/api/v1/auth/activate-seller \
 3. **Obtenir les clés API** :
    - Dashboard → **API Keys** → copier `Username` et `API Key`
 4. **Optionnel — Sender ID** :
-   - Dashboard → **SMS** → **Sender IDs** → demander un Sender ID personnalisé (ex: `BAZARIO`)
+   - Dashboard → **SMS** → **Sender IDs** → demander un Sender ID personnalisé (ex: `FASOMARKET`)
    - ⚠️ Le Sender ID alphanumérique nécessite une approbation (24-48h)
 5. **Tester en sandbox** :
    - URL sandbox : `https://api.sandbox.africastalking.com/version1/messaging`
@@ -66,7 +66,7 @@ curl -X POST https://api.bazario.com/api/v1/auth/activate-seller \
 ```env
 AT_USERNAME=votre_username
 AT_API_KEY=votre_api_key
-AT_SENDER_ID=BAZARIO  # optionnel
+AT_SENDER_ID=FASOMARKET  # optionnel
 AT_API_URL=https://api.africastalking.com/version1/messaging
 ```
 
@@ -74,7 +74,7 @@ AT_API_URL=https://api.africastalking.com/version1/messaging
 
 ```bash
 # Envoyer un OTP de test
-curl -X POST https://api.bazario.com/api/v1/auth/send-otp \
+curl -X POST https://api.fasomarket.com/api/v1/auth/send-otp \
   -H "Content-Type: application/json" \
   -d '{"phone": "+2250708091011"}'
 ```
@@ -86,13 +86,13 @@ curl -X POST https://api.bazario.com/api/v1/auth/send-otp \
 ### Étapes
 
 1. **Créer un projet** → https://console.firebase.google.com → Nouveau projet
-   - Nom : `bazario-production`
+   - Nom : `fasomarket-production`
 2. **Activer Cloud Messaging** :
    - Project Settings → Cloud Messaging → activer Firebase Cloud Messaging API (V1)
 3. **Ajouter l'app mobile** :
    - Project Settings → Général → Ajouter une app → iOS (+Android)
-   - Bundle ID iOS : `com.bazario.app`
-   - Package Android : `com.bazario.app`
+   - Bundle ID iOS : `com.fasomarket.app`
+   - Package Android : `com.fasomarket.app`
 4. **Générer les credentials** :
    - Project Settings → **Service accounts** → **Generate new private key**
    - Sauvegarder le fichier JSON en `firebase-credentials.json` à la racine du projet
@@ -122,7 +122,7 @@ Pas de variables d'env — le fichier `firebase-credentials.json` est monté dan
    - Dashboard → **Settings** → **API Keys**
    - Copier : `Cloud name`, `API Key`, `API Secret`
 3. **Configurer le folder** :
-   - Par défaut, les images seront dans `bazario/`
+   - Par défaut, les images seront dans `fasomarket/`
    - Optionnel : activer les transformations automatiques (redimensionnement)
 
 ### Variables à remplir dans `.env.prod`
@@ -137,7 +137,7 @@ CLOUDINARY_API_SECRET=votre_api_secret
 
 ```bash
 # Upload une image de test
-curl -X POST https://api.bazario.com/api/v1/upload/image \
+curl -X POST https://api.fasomarket.com/api/v1/upload/image \
   -H "Authorization: Bearer VOTRE_TOKEN" \
   -F "file=@test-image.jpg"
 ```
@@ -165,7 +165,7 @@ curl -X POST https://api.bazario.com/api/v1/upload/image \
 ```env
 DB_USER=postgres
 DB_PASSWORD=votre_mot_de_passe_fort
-DB_NAME=bazario
+DB_NAME=fasomarket
 # DATABASE_URL est construit dans docker-compose.prod.yml
 ```
 
@@ -194,5 +194,5 @@ docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
 docker compose -f docker-compose.prod.yml exec backend npx prisma migrate deploy
 
 # 6. Tester chaque service
-curl https://api.bazario.com/api/v1/health
+curl https://api.fasomarket.com/api/v1/health
 ```

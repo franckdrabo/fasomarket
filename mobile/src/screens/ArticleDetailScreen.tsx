@@ -54,7 +54,7 @@ export default function ArticleDetailScreen({ article, onBack, onContactSeller }
   async function handleShare() {
     try {
       await Share.share({
-        message: `Découvre "${article.titre}" sur Bazario - ${formattedPrice} FCFA\nhttps://bazario.com/article/${article.id}`,
+        message: `Découvre "${article.titre}" sur FasoMarket - ${formattedPrice} FCFA\nhttps://fasomarket.com/article/${article.id}`,
       });
     } catch {}
   }
@@ -68,7 +68,7 @@ export default function ArticleDetailScreen({ article, onBack, onContactSeller }
 
     // Formatage pour WhatsApp (enlever les espaces, +, etc si nécessaire)
     const cleanPhone = phone.replace(/\D/g, '');
-    const message = encodeURIComponent(`Bonjour, je suis intéressé par votre annonce "${article.titre}" sur Bazario.`);
+    const message = encodeURIComponent(`Bonjour, je suis intéressé par votre annonce "${article.titre}" sur FasoMarket.`);
     const url = `whatsapp://send?phone=${cleanPhone}&text=${message}`;
 
     Linking.canOpenURL(url).then(supported => {

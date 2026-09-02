@@ -6,13 +6,13 @@ import { ApiTags, ApiOperation, ApiOkResponse } from '@nestjs/swagger';
 export class AppController {
   @Get('health')
   @ApiOperation({ summary: 'Vérifier l\'état de l\'API', description: 'Endpoint de health check utilisé par Docker et les outils de monitoring.' })
-  @ApiOkResponse({ description: 'API en bonne santé', schema: { example: { status: 'ok', timestamp: '2026-01-15T03:00:00.000Z', version: '1.0.0', name: 'Bazario API' } } })
+  @ApiOkResponse({ description: 'API en bonne santé', schema: { example: { status: 'ok', timestamp: '2026-01-15T03:00:00.000Z', version: '1.0.0', name: 'FasoMarket API' } } })
   healthCheck() {
     return {
       status: 'ok',
       timestamp: new Date().toISOString(),
       version: '1.0.0',
-      name: 'Bazario API',
+      name: 'FasoMarket API',
     };
   }
 }

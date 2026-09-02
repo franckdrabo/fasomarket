@@ -1,4 +1,4 @@
-# Tests de Performance — Bazario Backend
+# Tests de Performance — FasoMarket Backend
 
 Tests de charge pour les endpoints critiques : **recherche d'articles** (API REST) et **chat en temps réel** (WebSocket Socket.IO).
 
@@ -119,10 +119,10 @@ k6 run articles-search.test.js --summary-trend-stats="avg,min,med,max,p(90),p(95
 k6 run articles-search.test.js -e API_URL=http://localhost:3000/api/v1
 
 # API de production
-k6 run articles-search.test.js -e API_URL=https://api.bazario.com/api/v1
+k6 run articles-search.test.js -e API_URL=https://api.fasomarket.com/api/v1
 
 # WebSocket pour production
-k6 run chat.test.js -e WS_URL=wss://api.bazario.com
+k6 run chat.test.js -e WS_URL=wss://api.fasomarket.com
 
 # Mode smoke test (1 VU, 10 itérations)
 k6 run articles-search.test.js -e K6_SMOKE=true -u 1 -i 10 --duration 10s

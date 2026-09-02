@@ -186,7 +186,7 @@ export default function PaymentConfirmationScreen({
             <Text style={styles.successPrice}>
               {montant.toLocaleString('fr-FR')} FCFA
             </Text>{' '}
-            est sécurisé via Bazario Escrow.
+            est sécurisé via FasoMarket Escrow.
           </Text>
 
           {/* Transaction info */}

@@ -16,7 +16,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 @WebSocketGateway({
   cors: {
     origin: process.env.NODE_ENV === 'production'
-      ? (process.env.CORS_ORIGIN || 'https://api.bazario.com').split(',')
+      ? (process.env.CORS_ORIGIN || 'https://api.fasomarket.com').split(',')
       : '*',
   },
   namespace: '/chat',

@@ -1,4 +1,4 @@
-// Bazario — Thème aux couleurs ouest-africaines
+// FasoMarket — Thème aux couleurs ouest-africaines
 export const colors = {
   primary: '#FF6B35',        // Orange soleil
   primaryDark: '#E55A2B',

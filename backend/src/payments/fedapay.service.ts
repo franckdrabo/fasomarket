@@ -97,7 +97,7 @@ export class FedaPayService {
           {
             amount: request.montant,
             currency: { iso: 'XOF' },
-            description: request.description || 'Paiement Bazario',
+            description: request.description || 'Paiement FasoMarket',
             callback_url: process.env.FEDAPAY_CALLBACK_URL || '',
           },
           { headers: this.authHeaders },

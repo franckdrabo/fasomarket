@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════════════════════════════
-# Bazario — CD (Déploiement Continu)
+# FasoMarket — CD (Déploiement Continu)
 # ═══════════════════════════════════════════════════════════════════════════════
 # Déclenché manuellement (workflow_dispatch) ou après CI réussie sur main.
 #
@@ -7,7 +7,7 @@
 #   DEPLOY_HOST          → IP ou domaine du serveur de production
 #   DEPLOY_USER          → Utilisateur SSH (ex: deploy)
 #   DEPLOY_SSH_KEY       → Clé privée SSH pour la connexion
-#   DEPLOY_PATH          → Chemin du projet sur le serveur (ex: /home/deploy/bazario)
+#   DEPLOY_PATH          → Chemin du projet sur le serveur (ex: /home/deploy/fasomarket)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 name: CD - Production
@@ -119,7 +119,7 @@ jobs:
         uses: rtCamp/action-slack-notify@v2
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_TITLE: 'Bazario — Déploiement ${{ job.status }}'
+          SLACK_TITLE: 'FasoMarket — Déploiement ${{ job.status }}'
           SLACK_MESSAGE: |
             Commit: ${{ github.sha }}
             Auteur: ${{ github.actor }}

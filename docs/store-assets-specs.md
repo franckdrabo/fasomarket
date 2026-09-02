@@ -1,4 +1,4 @@
-# 📦 Spécifications des assets — Bazario
+# 📦 Spécifications des assets — FasoMarket
 
 Guide complet des assets graphiques requis pour le lancement sur les stores.
 
@@ -34,14 +34,14 @@ Guide complet des assets graphiques requis pour le lancement sur les stores.
 
 | Champ | Limite | Exemple |
 |-------|--------|---------|
-| Nom | 30 caractères | Bazario - Marketplace |
+| Nom | 30 caractères | FasoMarket - Marketplace |
 | Sous-titre | 30 caractères | Achetez et vendez facilement |
 | Description | 4000 caractères | _(voir notes de version)_ |
 | Keywords | 100 caractères | marketplace,vente,achat,mobile money,orange money,wave |
 | Catégorie principale | — | Shopping |
 | Catégorie secondaire | — | Lifestyle |
-| URL de support | URL | https://bazario.com/support |
-| URL de confidentialité | URL | https://bazario.com/privacy |
+| URL de support | URL | https://fasomarket.com/support |
+| URL de confidentialité | URL | https://fasomarket.com/privacy |
 
 ---
 
@@ -85,17 +85,17 @@ Guide complet des assets graphiques requis pour le lancement sur les stores.
 
 | Champ | Limite | Exemple |
 |-------|--------|---------|
-| Titre | 30 caractères | Bazario - Marketplace |
+| Titre | 30 caractères | FasoMarket - Marketplace |
 | Description courte | 80 caractères | Achetez et vendez en toute confiance avec Mobile Money |
 | Description complète | 4000 caractères | _(voir notes de version)_ |
 | Catégorie | — | Shopping |
-| Politique de confidentialité | URL obligatoire | https://bazario.com/privacy |
+| Politique de confidentialité | URL obligatoire | https://fasomarket.com/privacy |
 
 ---
 
 ## 🎨 Guide de création des screenshots
 
-### Screenshots recommandés pour Bazario (ordre d'affichage)
+### Screenshots recommandés pour FasoMarket (ordre d'affichage)
 
 1. **🏠 Accueil** — Page principale avec les annonces en grid
 2. **🔍 Détail annonce** — Photo, prix FCFA, description, vendeur avec note
@@ -136,11 +136,11 @@ mobile/assets/
 ├── splash.png                  ← Splash screen iOS (1284×2778)
 ├── notification-icon.png       ← Icône de notification (96×96)
 └── icons/                      ← Généré par scripts/generate-icons.sh
-    ├── bazario-icon-appstore-1024x1024.png
-    ├── bazario-icon-play-store-512x512.png
-    ├── bazario-icon-xxxhdpi-192x192.png
-    ├── bazario-adaptive-fg-432x432.png
-    ├── bazario-adaptive-bg-432x432.png
+    ├── fasomarket-icon-appstore-1024x1024.png
+    ├── fasomarket-icon-play-store-512x512.png
+    ├── fasomarket-icon-xxxhdpi-192x192.png
+    ├── fasomarket-adaptive-fg-432x432.png
+    ├── fasomarket-adaptive-bg-432x432.png
     └── ...
 
 docs/

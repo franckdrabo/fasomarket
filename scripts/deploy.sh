@@ -1,5 +1,5 @@
 #!/bin/bash
-# ─── Bazario — Script de déploiement production ─────────────────────────────
+# ─── FasoMarket — Script de déploiement production ─────────────────────────────
 set -euo pipefail
 
 # ─── Couleurs ───────────────────────────────────────────────────────────────
@@ -9,7 +9,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-echo -e "${BLUE}🚀 Bazario — Déploiement Production${NC}"
+echo -e "${BLUE}🚀 FasoMarket — Déploiement Production${NC}"
 echo ""
 
 # ─── Détection de Docker Compose ────────────────────────────────────────────

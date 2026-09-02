@@ -126,7 +126,7 @@ export default function SettingsScreen({ onBack }: Props) {
 
             <View style={styles.divider} />
 
-            <TouchableOpacity style={styles.settingItem} onPress={() => Alert.alert('Langue', 'Pour l\'instant, Bazario est disponible uniquement en Français.')}>
+            <TouchableOpacity style={styles.settingItem} onPress={() => Alert.alert('Langue', 'Pour l\'instant, FasoMarket est disponible uniquement en Français.')}>
               <View style={styles.settingInfo}>
                 <View style={[styles.iconBox, { backgroundColor: colors.secondary + '15' }]}>
                   <Ionicons name="language-outline" size={20} color={colors.secondary} />
@@ -165,7 +165,7 @@ export default function SettingsScreen({ onBack }: Props) {
             <Text style={styles.logoutText}>Déconnexion</Text>
           </TouchableOpacity>
 
-          <Text style={styles.footerText}>Bazario — Fait avec ❤️ pour l&apos;Afrique</Text>
+          <Text style={styles.footerText}>FasoMarket — Fait avec ❤️ pour l&apos;Afrique</Text>
         </ScrollView>
       </SafeAreaView>
     </LinearGradient>

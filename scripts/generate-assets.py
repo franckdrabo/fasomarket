@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-generate-assets.py — Génère les assets graphiques pour Bazario
+generate-assets.py — Génère les assets graphiques pour FasoMarket
 - Feature graphic 1024×500 (Google Play)
 - Icônes redimensionnées (toutes tailles)
 - Adaptive icon foreground/background
@@ -135,7 +135,7 @@ def generate_feature_graphic(source_img):
 
     # App name
     font_name = get_font(56, bold=True)
-    draw.text((text_x, H // 2 - 50), "Bazario", fill=WHITE, font=font_name)
+    draw.text((text_x, H // 2 - 50), "FasoMarket", fill=WHITE, font=font_name)
 
     # Tagline
     font_tagline = get_font(24)
@@ -181,7 +181,7 @@ def generate_icons(source_img):
 
     for name, size in ICON_SIZES.items():
         resized = source_img.resize((size, size), Image.LANCZOS)
-        output = f"{OUTPUT_ICONS}/bazario-{name}-{size}x{size}.png"
+        output = f"{OUTPUT_ICONS}/fasomarket-{name}-{size}x{size}.png"
         resized.save(output, "PNG", optimize=True)
         print(f"   ✅ {name} → {size}×{size}")
 
@@ -190,13 +190,13 @@ def generate_adaptive_bg():
     """Génère le background orange pour l'adaptive icon Android."""
     size = 432
     img = Image.new("RGB", (size, size), ORANGE)
-    output = f"{OUTPUT_ICONS}/bazario-adaptive-bg-{size}x{size}.png"
+    output = f"{OUTPUT_ICONS}/fasomarket-adaptive-bg-{size}x{size}.png"
     img.save(output, "PNG")
     print(f"   ✅ adaptive-bg → {size}×{size} (orange solid)")
 
 
 def main():
-    print("🖼️  Génération des assets Bazario...\n")
+    print("🖼️  Génération des assets FasoMarket...\n")
 
     # Load source image
     source_img = None
@@ -223,7 +223,7 @@ def main():
             bbox = draw.textbbox((0, 0), "B", font=font)
             tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
             draw.text(((size - tw) // 2, (size - th) // 2 - 2), "B", fill=WHITE, font=font)
-            output = f"{OUTPUT_ICONS}/bazario-{name}-{size}x{size}.png"
+            output = f"{OUTPUT_ICONS}/fasomarket-{name}-{size}x{size}.png"
             img.save(output, "PNG")
             print(f"   ✅ {name} → {size}×{size} (placeholder)")
 

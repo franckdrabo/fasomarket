@@ -91,9 +91,9 @@ async function bootstrap() {
 
   // ─── Swagger / OpenAPI ─────────────────────────────────────────────────
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('Bazario API')
+    .setTitle('FasoMarket API')
     .setDescription(
-      'API de la marketplace Bazario — Achat et vente en toute confiance en Afrique de l\'Ouest.\n\n' +
+      'API de la marketplace FasoMarket — Achat et vente en toute confiance en Afrique de l\'Ouest.\n\n' +
       '### Authentification\n' +
       '1. Envoyez votre adresse email sur **POST /api/v1/auth/send-otp**\n' +
       '2. Validez le code OTP reçu par email sur **POST /api/v1/auth/verify-otp**\n' +
@@ -125,14 +125,14 @@ async function bootstrap() {
       tagsSorter: 'alpha',
       operationsSorter: 'method',
     },
-    customSiteTitle: 'Bazario API Documentation',
+    customSiteTitle: 'FasoMarket API Documentation',
     customCss: '.swagger-ui .topbar { display: none }',
   });
 
   logger.log(`📖 API documentation: http://localhost:${port}/api/docs`);
 
   await app.listen(port);
-  logger.log(`🚀 Bazario API running on http://localhost:${port}`);
+  logger.log(`🚀 FasoMarket API running on http://localhost:${port}`);
 }
 
 bootstrap();

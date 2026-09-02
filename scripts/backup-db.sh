@@ -1,12 +1,12 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════════════════════
-# Bazario — Script de sauvegarde automatisée PostgreSQL
+# FasoMarket — Script de sauvegarde automatisée PostgreSQL
 # ═══════════════════════════════════════════════════════════════════════════════
 # Usage:
 #   ./scripts/backup-db.sh                # Sauvegarde immédiate
 #   ./scripts/backup-db.sh --list         # Lister les sauvegardes existantes
 #   ./scripts/backup-db.sh --restore latest  # Restaurer la dernière sauvegarde
-#   ./scripts/backup-db.sh --restore ./backups/bazario_2026-01-15_030002.sql.gz
+#   ./scripts/backup-db.sh --restore ./backups/fasomarket_2026-01-15_030002.sql.gz
 #   ./scripts/backup-db.sh --install-cron # Installer le cron de backup quotidien
 #   ./scripts/backup-db.sh --status       # État du répertoire de backups
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -31,11 +31,11 @@ PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 BACKUP_DIR="${BACKUP_DIR:-${PROJECT_DIR}/backups}"
 
 # Nom du conteneur PostgreSQL dans Docker Compose
-DB_CONTAINER="${DB_CONTAINER:-bazario-db}"
+DB_CONTAINER="${DB_CONTAINER:-fasomarket-db}"
 
 # Nom de la base de données (lu depuis .env ou docker-compose par défaut)
-DB_NAME="${DB_NAME:-bazario}"
-DB_USER="${DB_USER:-bazario}"
+DB_NAME="${DB_NAME:-fasomarket}"
+DB_USER="${DB_USER:-fasomarket}"
 
 # Rétention : nombre de sauvegardes à conserver
 RETENTION_COUNT="${RETENTION_COUNT:-14}"
@@ -76,14 +76,14 @@ notify_slack() {
             -d "{
                 \"attachments\": [{
                     \"color\": \"$color\",
-                    \"title\": \"🗄️ Backup Bazario — $message\",
+                    \"title\": \"🗄️ Backup FasoMarket — $message\",
                     \"fields\": [
                         {\"title\": \"Base\", \"value\": \"$DB_NAME\", \"short\": true},
                         {\"title\": \"Date\", \"value\": \"$(date '+%Y-%m-%d %H:%M:%S')\", \"short\": true},
                         {\"title\": \"Taille\", \"value\": \"$3\", \"short\": true},
                         {\"title\": \"Serveur\", \"value\": \"$(hostname)\", \"short\": true}
                     ],
-                    \"footer\": \"Bazario Backup Script\"
+                    \"footer\": \"FasoMarket Backup Script\"
                 }]
             }" > /dev/null 2>&1 || true
     fi
@@ -146,13 +146,13 @@ perform_backup() {
         --no-owner \
         --no-acl \
         --verbose \
-        2>/tmp/bazario-db-dump.log \
+        2>/tmp/fasomarket-db-dump.log \
         | gzip > "$backup_file"; then
         ok "Dump terminé avec succès"
     else
         error "Échec du dump"
         warn "Dernières lignes du log :"
-        tail -5 /tmp/bazario-db-dump.log 2>/dev/null || true
+        tail -5 /tmp/fasomarket-db-dump.log 2>/dev/null || true
         notify_slack "failure" "Échec du dump PostgreSQL" "0"
         return 1
     fi
@@ -275,12 +275,12 @@ restore_backup() {
     info "Restauration en cours..."
 
     # Décompresser et restaurer via psql dans le conteneur
-    if gunzip -c "$source" | docker exec -i "$DB_CONTAINER" psql -U "$DB_USER" -d "$DB_NAME" 2>/tmp/bazario-db-restore.log; then
+    if gunzip -c "$source" | docker exec -i "$DB_CONTAINER" psql -U "$DB_USER" -d "$DB_NAME" 2>/tmp/fasomarket-db-restore.log; then
         ok "Restauration terminée avec succès"
     else
         error "Échec de la restauration"
         warn "Dernières lignes du log :"
-        tail -10 /tmp/bazario-db-restore.log 2>/dev/null || true
+        tail -10 /tmp/fasomarket-db-restore.log 2>/dev/null || true
         exit 1
     fi
 
@@ -384,7 +384,7 @@ install_cron() {
     # Ajouter au crontab de l'utilisateur courant
     (
         crontab -l 2>/dev/null | grep -v 'backup-db.sh' || true
-        echo "# ─── Bazario — Backup quotidien PostgreSQL ─────────────────────"
+        echo "# ─── FasoMarket — Backup quotidien PostgreSQL ─────────────────────"
         echo "${cron_schedule} ${cron_cmd}"
         echo "${cron_logrotate}"
     ) | crontab -
@@ -432,7 +432,7 @@ pre_deploy_backup() {
 show_help() {
     cat <<EOF
 ╔════════════════════════════════════════════════════════════════════╗
-║        Bazario — Sauvegarde automatisée PostgreSQL                ║
+║        FasoMarket — Sauvegarde automatisée PostgreSQL                ║
 ╚════════════════════════════════════════════════════════════════════╝
 
 Usage:
@@ -449,9 +449,9 @@ Commandes:
 
 Variables d'environnement (ou dans .env racine):
   BACKUP_DIR       Répertoire de destination (défaut: ./backups/)
-  DB_CONTAINER     Nom du conteneur PostgreSQL (défaut: bazario-db)
-  DB_NAME          Nom de la base (défaut: bazario)
-  DB_USER          Utilisateur PostgreSQL (défaut: bazario)
+  DB_CONTAINER     Nom du conteneur PostgreSQL (défaut: fasomarket-db)
+  DB_NAME          Nom de la base (défaut: fasomarket)
+  DB_USER          Utilisateur PostgreSQL (défaut: fasomarket)
   RETENTION_COUNT  Nombre de backups à garder (défaut: 14)
   SLACK_WEBHOOK_URL  Webhook Slack pour notifications (optionnel)
   S3_BUCKET        URI du bucket S3 pour upload (optionnel)
@@ -468,7 +468,7 @@ Exemples:
   ./scripts/backup-db.sh --restore latest
 
   # Restaurer un fichier spécifique
-  ./scripts/backup-db.sh --restore ./backups/bazario_2026-01-15_030002.sql.gz
+  ./scripts/backup-db.sh --restore ./backups/fasomarket_2026-01-15_030002.sql.gz
 
   # Installer le cron (tous les jours à 3h du matin)
   ./scripts/backup-db.sh --install-cron
@@ -491,7 +491,7 @@ load_env
 
 echo ""
 echo -e "${BLUE}┌──────────────────────────────────────────────────────────┐${NC}"
-echo -e "${BLUE}│  🗄️  Bazario — Sauvegarde PostgreSQL                       │${NC}"
+echo -e "${BLUE}│  🗄️  FasoMarket — Sauvegarde PostgreSQL                       │${NC}"
 echo -e "${BLUE}└──────────────────────────────────────────────────────────┘${NC}"
 echo ""
 

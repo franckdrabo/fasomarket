@@ -370,7 +370,7 @@ async function main() {
           'Paiement confirmé',
           'Vente réussie',
           'Litige ouvert',
-          'Bienvenue sur Bazario',
+          'Bienvenue sur FasoMarket',
         ]),
         body: 'Ceci est une notification de test générée par le script CI.',
         type: pickRandom(notifTypes),

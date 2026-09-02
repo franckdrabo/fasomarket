@@ -48,7 +48,7 @@ describe('CloudinaryService', () => {
 
   describe('uploadFile', () => {
     it('devrait uploader un fichier valide avec succès', async () => {
-      const mockResult = { secure_url: 'https://res.cloudinary.com/demo/image/upload/v1/bazario/abc123', public_id: 'bazario/abc123' };
+      const mockResult = { secure_url: 'https://res.cloudinary.com/demo/image/upload/v1/fasomarket/abc123', public_id: 'fasomarket/abc123' };
 
       (cloudinary.uploader.upload_stream as jest.Mock).mockImplementation(
         (_options: any, callback: any) => {
@@ -58,7 +58,7 @@ describe('CloudinaryService', () => {
       );
 
       const file = createMockFile();
-      const result = await service.uploadFile(file, 'bazario');
+      const result = await service.uploadFile(file, 'fasomarket');
 
       expect(result).toEqual({
         url: mockResult.secure_url,
@@ -141,9 +141,9 @@ describe('CloudinaryService', () => {
 
   describe('deleteFile', () => {
     it('devrait supprimer un fichier par son publicId', async () => {
-      await service.deleteFile('bazario/abc123');
+      await service.deleteFile('fasomarket/abc123');
 
-      expect(cloudinary.uploader.destroy).toHaveBeenCalledWith('bazario/abc123');
+      expect(cloudinary.uploader.destroy).toHaveBeenCalledWith('fasomarket/abc123');
     });
 
     it('devrait gérer la suppression sans erreur', async () => {

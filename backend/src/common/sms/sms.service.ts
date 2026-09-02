@@ -10,7 +10,7 @@ import { firstValueFrom } from 'rxjs';
  *                               (obligatoire pour envoyer)
  *   - AT_API_KEY              : clé API Africastalking (obligatoire)
  *   - AT_SENDER_ID            : identifiant d'expéditeur validé (optionnel,
- *                               ex: "BAZARIO" — sinon l'expéditeur par défaut
+ *                               ex: "FASOMARKET" — sinon l'expéditeur par défaut
  *                               du compte est utilisé). NB : les Sender ID
  *                               alphanumériques exigent généralement une
  *                               approbation en production.
@@ -94,7 +94,7 @@ export class SmsService {
 
   /** Message OTP à 6 chiffres (expire en 5 min côté serveur) */
   async sendOtpCode(phone: string, code: string): Promise<boolean> {
-    const text = `Bazario : votre code de verification est ${code}. Il expire dans 5 minutes.`;
+    const text = `FasoMarket : votre code de verification est ${code}. Il expire dans 5 minutes.`;
     return this.sendSms(phone, text);
   }
 }

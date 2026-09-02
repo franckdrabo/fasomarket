@@ -48,7 +48,7 @@ interface AuthState {
 // Mémorisée par utilisateur : l'overlay d'activation ne se réaffiche pas
 // à chaque lancement si l'utilisateur a choisi « Plus tard ».
 
-const SELLER_SKIP_KEY_PREFIX = 'bazario_seller_activation_skipped_';
+const SELLER_SKIP_KEY_PREFIX = 'fasomarket_seller_activation_skipped_';
 
 function sellerSkipKey(userId: string): string {
   return `${SELLER_SKIP_KEY_PREFIX}${userId}`;
@@ -115,7 +115,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       // Récupérer le profil
       const user = await api.auth.getProfile();
-      const biometricState = await SecureStore.getItemAsync('bazario_biometric').catch(() => null);
+      const biometricState = await SecureStore.getItemAsync('fasomarket_biometric').catch(() => null);
 
       set({
         user,
@@ -235,7 +235,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     // Nettoyage du stockage local sécurisé
     await clearTokens();
-    await SecureStore.deleteItemAsync('bazario_biometric').catch(() => {});
+    await SecureStore.deleteItemAsync('fasomarket_biometric').catch(() => {});
 
     // Reset du state
     set({
@@ -250,14 +250,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (!refreshToken) throw new Error('Aucun token');
 
     await api.auth.enableBiometric(refreshToken);
-    await SecureStore.setItemAsync('bazario_biometric', 'true');
+    await SecureStore.setItemAsync('fasomarket_biometric', 'true');
 
     set({ biometricEnabled: true });
   },
 
   disableBiometric: async () => {
     await api.auth.disableBiometric();
-    await SecureStore.deleteItemAsync('bazario_biometric').catch(() => {});
+    await SecureStore.deleteItemAsync('fasomarket_biometric').catch(() => {});
 
     set({ biometricEnabled: false });
   },

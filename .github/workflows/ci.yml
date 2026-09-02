@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════════════════════════════
-# Bazario — CI (Intégration Continue)
+# FasoMarket — CI (Intégration Continue)
 # ═══════════════════════════════════════════════════════════════════════════════
 # Déclenché sur :
 #   - push sur main
@@ -61,7 +61,7 @@ jobs:
       - name: Generate Prisma client
         run: npx prisma generate
         env:
-          DATABASE_URL: postgresql://bazario:bazario_secret@localhost:5432/bazario
+          DATABASE_URL: postgresql://fasomarket:fasomarket_secret@localhost:5432/fasomarket
 
       - name: Run ESLint
         run: npm run lint
@@ -94,7 +94,7 @@ jobs:
         run: npx prisma generate
         working-directory: ${{ env.BACKEND_DIR }}
         env:
-          DATABASE_URL: postgresql://bazario:bazario_secret@localhost:5432/bazario
+          DATABASE_URL: postgresql://fasomarket:fasomarket_secret@localhost:5432/fasomarket
 
       - name: Run unit tests (MockPrismaService)
         run: npm test
@@ -135,7 +135,7 @@ jobs:
         run: npx prisma generate
         working-directory: ${{ env.BACKEND_DIR }}
         env:
-          DATABASE_URL: postgresql://bazario:bazario_secret@localhost:5432/bazario
+          DATABASE_URL: postgresql://fasomarket:fasomarket_secret@localhost:5432/fasomarket
 
       - name: Build NestJS
         run: npm run build

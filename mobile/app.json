@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "Bazario",
-    "slug": "bazario",
+    "name": "FasoMarket",
+    "slug": "fasomarket",
     "owner": "stromridens-team",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "scheme": "bazario",
+    "scheme": "fasomarket",
     "userInterfaceStyle": "light",
     "splash": {
       "backgroundColor": "#FF6B35",
@@ -20,9 +20,9 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.bazario.app",
+      "bundleIdentifier": "com.fasomarket.app",
       "infoPlist": {
-        "NSFaceIDUsageDescription": "Utiliser Face ID pour se connecter rapidement à Bazario"
+        "NSFaceIDUsageDescription": "Utiliser Face ID pour se connecter rapidement à FasoMarket"
       }
     },
     "android": {
@@ -30,7 +30,7 @@
         "backgroundColor": "#FF6B35",
         "foregroundImage": "./assets/adaptive-icon.png"
       },
-      "package": "com.bazario.app",
+      "package": "com.fasomarket.app",
       "permissions": [
         "USE_BIOMETRIC",
         "RECEIVE_BOOT_COMPLETED",
@@ -53,15 +53,15 @@
       },
       "apiUrl": {
         "development": "http://192.168.1.79:3000/api/v1",
-        "staging": "https://staging-api.bazario.com/api/v1",
-        "production": "https://api.bazario.com/api/v1"
+        "staging": "https://staging-api.fasomarket.com/api/v1",
+        "production": "https://api.fasomarket.com/api/v1"
       }
     },
     "plugins": [
       [
         "expo-local-authentication",
         {
-          "faceIDPermission": "Utiliser Face ID pour se connecter rapidement à Bazario"
+          "faceIDPermission": "Utiliser Face ID pour se connecter rapidement à FasoMarket"
         }
       ],
       [
@@ -74,7 +74,7 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Bazario a besoin d'accéder à vos photos pour ajouter des images à vos annonces."
+          "photosPermission": "FasoMarket a besoin d'accéder à vos photos pour ajouter des images à vos annonces."
         }
       ],
       "expo-font",

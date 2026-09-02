@@ -77,8 +77,8 @@ export default function PaymentScreen({ article, onBack, onPaymentComplete }: Pr
   const [agreed, setAgreed] = useState(false);
 
   const formattedPrice = article.prix.toLocaleString('fr-FR');
-  const commissionBazario = article.prix * 0.005; // 0.5%
-  const total = article.prix + commissionBazario;
+  const commissionFasoMarket = article.prix * 0.005; // 0.5%
+  const total = article.prix + commissionFasoMarket;
 
   async function handlePayment() {
     if (!selectedProvider) {
@@ -270,8 +270,8 @@ export default function PaymentScreen({ article, onBack, onPaymentComplete }: Pr
               <Text style={styles.feeValue}>{formattedPrice} FCFA</Text>
             </View>
             <View style={styles.feeRow}>
-              <Text style={styles.feeLabel}>Commission Bazario (0.5%)</Text>
-              <Text style={styles.feeValue}>{commissionBazario.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} FCFA</Text>
+              <Text style={styles.feeLabel}>Commission FasoMarket (0.5%)</Text>
+              <Text style={styles.feeValue}>{commissionFasoMarket.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} FCFA</Text>
             </View>
             <View style={[styles.feeRow, styles.feeTotalRow]}>
               <Text style={styles.feeTotalLabel}>Total à payer</Text>
@@ -284,7 +284,7 @@ export default function PaymentScreen({ article, onBack, onPaymentComplete }: Pr
           <View style={styles.infoBox}>
             <Ionicons name="shield-checkmark" size={20} color={colors.secondary} />
             <Text style={styles.infoBoxText}>
-              Paiement sécurisé via Bazario Escrow. Les fonds sont bloqués jusqu&apos;à
+              Paiement sécurisé via FasoMarket Escrow. Les fonds sont bloqués jusqu&apos;à
               confirmation de réception.
             </Text>
           </View>

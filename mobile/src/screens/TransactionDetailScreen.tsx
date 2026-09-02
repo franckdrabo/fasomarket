@@ -78,7 +78,7 @@ export default function TransactionDetailScreen({ transaction, onBack, onRefresh
       await api.transactions.openDispute(transaction.id, disputeMotif.trim());
       Alert.alert(
         '⚠️ Litige ouvert',
-        'Un litige a été ouvert. L\'équipe Bazario va traiter votre dossier sous 48h.',
+        'Un litige a été ouvert. L\'équipe FasoMarket va traiter votre dossier sous 48h.',
       );
       setShowDisputeInput(false);
       setDisputeMotif('');

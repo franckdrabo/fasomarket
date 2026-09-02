@@ -176,7 +176,7 @@ export default function LoginScreen({ onRegisterPress, onComplete, onSkip }: Log
             <View style={styles.biometricIconWrapper}>
               <Ionicons name="finger-print" size={80} color={colors.primary} />
             </View>
-            <Text style={styles.biometricTitle}>Bienvenue sur Bazario</Text>
+            <Text style={styles.biometricTitle}>Bienvenue sur FasoMarket</Text>
             <Text style={styles.biometricSubtitle}>
               Touchez le capteur {biometricTypeName.toLowerCase()} pour vous connecter
             </Text>
@@ -241,7 +241,7 @@ export default function LoginScreen({ onRegisterPress, onComplete, onSkip }: Log
                   <Ionicons name="basket" size={36} color="#fff" />
                 </View>
               </LinearGradient>
-              <Text style={styles.appName}>Bazario</Text>
+              <Text style={styles.appName}>FasoMarket</Text>
               <Text style={styles.tagline}>Achète et vends en toute confiance</Text>
             </Animated.View>
 

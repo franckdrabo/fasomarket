@@ -1,8 +1,8 @@
 {
   "android": {
-    "package": "com.stro_rien.bazario"
+    "package": "com.fasomarket.app"
   },
   "ios": {
-    "bundleIdentifier": "com.stro-rien.bazario"
+    "bundleIdentifier": "com.stro-rien.fasomarket"
   }
 }

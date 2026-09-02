@@ -76,7 +76,7 @@ export async function authenticateWithBiometric(
 ): Promise<boolean> {
   try {
     const result = await LocalAuthentication.authenticateAsync({
-      promptMessage: promptMessage || 'Connectez-vous à Bazario',
+      promptMessage: promptMessage || 'Connectez-vous à FasoMarket',
       fallbackLabel: 'Utiliser le code',
       cancelLabel: 'Annuler',
       disableDeviceFallback: false,

@@ -1,6 +1,6 @@
 #!/bin/bash
 # ──────────────────────────────────────────────────────────────────────
-# generate-icons.sh — Redimensionne l'icône Bazario en toutes tailles
+# generate-icons.sh — Redimensionne l'icône FasoMarket en toutes tailles
 # requis par Google Play Store et Apple App Store.
 #
 # Usage:
@@ -26,7 +26,7 @@ fi
 # Créer le dossier de sortie
 mkdir -p "$OUTPUT_DIR"
 
-echo "🖼️  Redimensionnement de l'icône Bazario..."
+echo "🖼️  Redimensionnement de l'icône FasoMarket..."
 echo "   Source: $SOURCE"
 echo "   Sortie: $OUTPUT_DIR/"
 echo ""
@@ -51,7 +51,7 @@ fi
 resize() {
   local size=$1
   local name=$2
-  local output="$OUTPUT_DIR/bazario-${name}-${size}x${size}.png"
+  local output="$OUTPUT_DIR/fasomarket-${name}-${size}x${size}.png"
 
   if [ "$USE_CONVERT" = true ]; then
     convert "$SOURCE" -resize "${size}x${size}" -quality 100 "$output"
@@ -92,7 +92,7 @@ resize 432  "adaptive-bg"
 # ─── Générer l'adaptive icon background ─────────────────────────────
 echo ""
 echo "🎨 Génération du background adaptive icon..."
-BG_OUTPUT="$OUTPUT_DIR/bazario-adaptive-bg-432x432.png"
+BG_OUTPUT="$OUTPUT_DIR/fasomarket-adaptive-bg-432x432.png"
 
 if [ "$USE_CONVERT" = true ]; then
   convert -size 432x432 xc:'#FF6B35' "$BG_OUTPUT"
@@ -133,7 +133,7 @@ echo ""
 echo "🖼️  Feature Graphic (1024×500):"
 echo "   ℹ️  Utilisez l'outil HTML: docs/generate-assets.html"
 echo "   ou générez-le manuellement avec ImageMagick:"
-echo "   convert -size 1024x500 xc:'#FF6B35' -fill white -font Helvetica-Bold -pointsize 56 -gravity center -annotate +0-40 'Bazario' -pointsize 24 -annotate +0+30 'Achetez et vendez en toute confiance' feature-graphic.png"
+echo "   convert -size 1024x500 xc:'#FF6B35' -fill white -font Helvetica-Bold -pointsize 56 -gravity center -annotate +0-40 'FasoMarket' -pointsize 24 -annotate +0+30 'Achetez et vendez en toute confiance' feature-graphic.png"
 
 # ─── Résumé ──────────────────────────────────────────────────────────
 echo ""

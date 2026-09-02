@@ -133,7 +133,7 @@ export class CinetPayService implements MobileMoneyProvider {
             cpm_amount: request.montant,
             cpm_currency: 'XOF',
             cpm_trans_id: request.reference,
-            cpm_designation: request.description || 'Paiement Bazario',
+            cpm_designation: request.description || 'Paiement FasoMarket',
             cpm_language: 'fr',
             cpm_phone: request.telephone,
             cpm_payment_config: operatorConfig,
@@ -154,7 +154,7 @@ export class CinetPayService implements MobileMoneyProvider {
         };
       }
 
-      // providerReference = notre cpm_trans_id (référence Bazario), PAS le token
+      // providerReference = notre cpm_trans_id (référence FasoMarket), PAS le token
       // CinetPay : l'endpoint /v1/payment/check s'interroge avec cpm_trans_id,
       // donc le round-trip (init → confirm) doit rester sur notre référence.
       return {

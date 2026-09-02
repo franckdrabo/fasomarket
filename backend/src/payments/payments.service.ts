@@ -35,7 +35,7 @@ export class PaymentsService {
       montant: transaction.montant,
       telephone: dto.telephone,
       reference: transaction.referencePaiement || transaction.id,
-      description: `Paiement ${transaction.article.titre.substring(0, 50)} - Bazario`,
+      description: `Paiement ${transaction.article.titre.substring(0, 50)} - FasoMarket`,
       operateur: dto.moyenPaiement,
     });
 
@@ -104,7 +104,7 @@ export class PaymentsService {
         // Notifier l'utilisateur que son compte vendeur est activé
         await this.notificationsService.sendToUser(sellerActivation.id, {
           title: '🎉 Compte vendeur activé !',
-          body: 'Votre paiement de 1 000 FCFA a été confirmé. Vous pouvez maintenant vendre sur Bazario.',
+          body: 'Votre paiement de 1 000 FCFA a été confirmé. Vous pouvez maintenant vendre sur FasoMarket.',
           data: { type: 'seller_activated' },
         });
       } else if (callbackData.status === 'FAILED') {

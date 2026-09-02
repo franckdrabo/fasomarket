@@ -9,7 +9,7 @@ import * as nodemailer from 'nodemailer';
  *   - SMTP_PORT     : port (défaut: 465)
  *   - SMTP_USER     : adresse email d'envoi
  *   - SMTP_PASS     : mot de passe ou app password
- *   - SMTP_FROM     : nom d'affichage de l'expéditeur (défaut: "Bazario")
+ *   - SMTP_FROM     : nom d'affichage de l'expéditeur (défaut: "FasoMarket")
  *
  * En dev sans SMTP configuré : log le code dans la console (pas d'envoi réel).
  */
@@ -59,7 +59,7 @@ export class EmailService {
       return false;
     }
 
-    const from = process.env.SMTP_FROM || 'Bazario';
+    const from = process.env.SMTP_FROM || 'FasoMarket';
 
     try {
       await this.transporter.sendMail({
@@ -84,7 +84,7 @@ export class EmailService {
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
         <div style="text-align: center; margin-bottom: 32px;">
-          <h1 style="color: #FF6B35; font-size: 28px; margin: 0;">Bazario</h1>
+          <h1 style="color: #FF6B35; font-size: 28px; margin: 0;">FasoMarket</h1>
           <p style="color: #7F8C8D; font-size: 14px; margin-top: 4px;">Le marché de confiance</p>
         </div>
 
@@ -108,7 +108,7 @@ export class EmailService {
 
     return this.sendEmail(
       email,
-      `Bazario — Votre code de vérification : ${code}`,
+      `FasoMarket — Votre code de vérification : ${code}`,
       html,
     );
   }

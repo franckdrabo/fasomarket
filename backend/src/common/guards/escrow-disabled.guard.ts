@@ -6,7 +6,7 @@ import { Injectable, CanActivate, ExecutionContext, GoneException, Logger } from
  * Désactive les endpoints du paiement sécurisé (escrow) côté serveur.
  *
  * Depuis la décision produit « achat 100% P2P », les transactions d'articles ne
- * passent plus par l'escrow Bazario : l'acheteur paie directement le vendeur
+ * passent plus par l'escrow FasoMarket : l'acheteur paie directement le vendeur
  * par Mobile Money sur le numéro communiqué dans la messagerie.
  *
  * Le code des services (PaymentsService, TransactionsService) est conservé

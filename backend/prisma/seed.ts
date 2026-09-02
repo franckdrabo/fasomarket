@@ -17,7 +17,7 @@ async function main() {
       phone: '+2250101020304',
       nom: 'Cartman',
       ville: 'Abidjan',
-      bio: 'Fondateur de Bazario',
+      bio: 'Fondateur de FasoMarket',
       badgeVerifie: true,
     },
   });
@@ -52,7 +52,7 @@ async function main() {
       etat: EtatArticle.COMME_NEUF,
       prix: 15000,
       ville: 'Abidjan',
-      photos: ['https://res.cloudinary.com/demo/image/upload/v1/bazario/sample'],
+      photos: ['https://res.cloudinary.com/demo/image/upload/v1/fasomarket/sample'],
       statut: StatutArticle.EN_LIGNE,
     },
   });
@@ -66,7 +66,7 @@ async function main() {
       etat: EtatArticle.BON_ETAT,
       prix: 450000,
       ville: 'Dakar',
-      photos: ['https://res.cloudinary.com/demo/image/upload/v1/bazario/sample'],
+      photos: ['https://res.cloudinary.com/demo/image/upload/v1/fasomarket/sample'],
       statut: StatutArticle.EN_LIGNE,
     },
   });
@@ -80,7 +80,7 @@ async function main() {
       etat: EtatArticle.BON_ETAT,
       prix: 85000,
       ville: 'Abidjan',
-      photos: ['https://res.cloudinary.com/demo/image/upload/v1/bazario/sample'],
+      photos: ['https://res.cloudinary.com/demo/image/upload/v1/fasomarket/sample'],
       statut: StatutArticle.EN_LIGNE,
     },
   });

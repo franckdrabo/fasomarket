@@ -4,17 +4,17 @@ services:
   # ─── Base de données PostgreSQL ──────────────────────────────────────────
   postgres:
     image: postgres:16-alpine
-    container_name: bazario-db
+    container_name: fasomarket-db
     restart: unless-stopped
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: ${DB_USER:-bazario}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-bazario_secret}
-      POSTGRES_DB: ${DB_NAME:-bazario}
+      POSTGRES_USER: ${DB_USER:-fasomarket}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-fasomarket_secret}
+      POSTGRES_DB: ${DB_NAME:-fasomarket}
     # Pas de port host — accès interne Docker uniquement via "postgres:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-bazario}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-fasomarket}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -22,7 +22,7 @@ services:
   # ─── Cache Redis ─────────────────────────────────────────────────────────
   redis:
     image: redis:7-alpine
-    container_name: bazario-redis
+    container_name: fasomarket-redis
     restart: unless-stopped
     volumes:
       - redis_data:/data
@@ -40,7 +40,7 @@ services:
       # Contexte à la racine pour accéder au package-lock.json du workspace
       context: .
       dockerfile: backend/Dockerfile
-    container_name: bazario-api
+    container_name: fasomarket-api
     restart: unless-stopped
     depends_on:
       postgres:
@@ -50,7 +50,7 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       PORT: ${BACKEND_PORT:-3000}
-      DATABASE_URL: "postgresql://${DB_USER:-bazario}:${DB_PASSWORD:-bazario_secret}@postgres:5432/${DB_NAME:-bazario}?schema=public"
+      DATABASE_URL: "postgresql://${DB_USER:-fasomarket}:${DB_PASSWORD:-fasomarket_secret}@postgres:5432/${DB_NAME:-fasomarket}?schema=public"
       REDIS_URL: "redis://:${REDIS_PASSWORD:-}@redis:6379"
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-15m}
@@ -64,7 +64,7 @@ services:
       WEBHOOK_SECRET: ${WEBHOOK_SECRET:-}
       # Exiger X-Signature sur les webhooks (CinetPay v1 ne signe pas → false par défaut)
       REQUIRE_WEBHOOK_SIGNATURE: ${REQUIRE_WEBHOOK_SIGNATURE:-false}
-      CORS_ORIGIN: ${CORS_ORIGIN:-https://api.bazario.com}
+      CORS_ORIGIN: ${CORS_ORIGIN:-https://api.fasomarket.com}
       ORANGE_MONEY_API_KEY: ${ORANGE_MONEY_API_KEY:-}
       MOOV_MONEY_API_KEY: ${MOOV_MONEY_API_KEY:-}
       WAVE_API_KEY: ${WAVE_API_KEY:-}
@@ -103,7 +103,7 @@ services:
   # ─── (Optionnel) Nginx reverse proxy ─────────────────────────────────────
   nginx:
     image: nginx:alpine
-    container_name: bazario-nginx
+    container_name: fasomarket-nginx
     restart: unless-stopped
     depends_on:
       - backend
@@ -120,6 +120,6 @@ services:
 
 volumes:
   postgres_data:
-    name: bazario_postgres_data
+    name: fasomarket_postgres_data
   redis_data:
-    name: bazario_redis_data
+    name: fasomarket_redis_data

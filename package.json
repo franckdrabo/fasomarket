@@ -1,8 +1,8 @@
 {
-  "name": "bazario",
+  "name": "fasomarket",
   "version": "1.0.0",
   "private": true,
-  "description": "Bazario - Marketplace mobile C2C pour l'Afrique de l'Ouest",
+  "description": "FasoMarket - Marketplace mobile C2C pour l'Afrique de l'Ouest",
   "workspaces": [
     "backend",
     "mobile"

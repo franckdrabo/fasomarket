@@ -36,7 +36,7 @@ export class TransactionsService {
     if (existingTransaction) throw new BadRequestException('Une transaction est déjà en cours');
 
     // Créer la transaction en escrow
-    const commissionBazario = Math.round(dto.montant * 0.005 * 100) / 100; // 0.5% commission Bazario
+    const commissionBazario = Math.round(dto.montant * 0.005 * 100) / 100; // 0.5% commission FasoMarket
     const fraisService = Math.round(dto.montant * 0.05 * 100) / 100; // 5% frais opérateur
     const dateLimite = new Date();
     dateLimite.setDate(dateLimite.getDate() + 14); // Libération auto après 14 jours
@@ -178,7 +178,7 @@ export class TransactionsService {
       [transaction.acheteurId, transaction.vendeurId],
       {
         title: '⚠️ Litige ouvert',
-        body: `Un litige a été ouvert pour la transaction #${transaction.referencePaiement || dto.transactionId.substring(0, 8)}. L'équipe Bazario va traiter le dossier.`,
+        body: `Un litige a été ouvert pour la transaction #${transaction.referencePaiement || dto.transactionId.substring(0, 8)}. L'équipe FasoMarket va traiter le dossier.`,
         data: {
           type: 'dispute_opened',
           transactionId: transaction.id,

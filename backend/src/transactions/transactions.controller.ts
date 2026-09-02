@@ -50,7 +50,7 @@ export class TransactionsController {
   @Post('dispute')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: '[DÉSACTIVÉ] Ouvrir un litige', description: '⚠️ Escrow désactivé. Cette route répond 410 Gone.' })
-  @ApiCreatedResponse({ description: 'Litige ouvert, équipe Bazario notifiée' })
+  @ApiCreatedResponse({ description: 'Litige ouvert, équipe FasoMarket notifiée' })
   async openDispute(@CurrentUser('sub') userId: string, @Body() dto: OpenDisputeDto) {
     return this.transactionsService.openDispute(userId, dto);
   }

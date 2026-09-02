@@ -1,10 +1,10 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════════════════════
-# Bazario — Script de configuration SSL Let's Encrypt
+# FasoMarket — Script de configuration SSL Let's Encrypt
 # ═══════════════════════════════════════════════════════════════════════════════
 # Usage:
 #   ./scripts/setup-ssl.sh              # Interactive : guide pas à pas
-#   ./scripts/setup-ssl.sh --domain api.bazario.com --email admin@bazario.com
+#   ./scripts/setup-ssl.sh --domain api.fasomarket.com --email admin@fasomarket.com
 #   ./scripts/setup-ssl.sh --renew      # Renouvellement manuel
 #   ./scripts/setup-ssl.sh --auto-renew # Installation du cron de renouvellement
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -23,8 +23,8 @@ NC='\033[0m'
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 SSL_DIR="${PROJECT_DIR}/nginx/ssl"
-DOMAIN="${DOMAIN:-api.bazario.com}"
-EMAIL="${EMAIL:-admin@bazario.com}"
+DOMAIN="${DOMAIN:-api.fasomarket.com}"
+EMAIL="${EMAIL:-admin@fasomarket.com}"
 
 # ─── Fonctions utilitaires ──────────────────────────────────────────────────
 
@@ -37,7 +37,7 @@ step()  { echo -e "\n${BLUE}━━━ $1 ━━━${NC}"; }
 show_help() {
     cat <<EOF
 ╔════════════════════════════════════════════════════════════════════╗
-║          Bazario — Configuration SSL Let's Encrypt                ║
+║          FasoMarket — Configuration SSL Let's Encrypt                ║
 ╚════════════════════════════════════════════════════════════════════╝
 
 Usage:
@@ -178,7 +178,7 @@ generate_self_signed() {
     openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
         -keyout "$SSL_DIR/key.pem" \
         -out "$SSL_DIR/cert.pem" \
-        -subj "/C=CI/ST=Abidjan/L=Abidjan/O=Bazario/CN=${DOMAIN}" \
+        -subj "/C=CI/ST=Abidjan/L=Abidjan/O=FasoMarket/CN=${DOMAIN}" \
         2>/dev/null
 
     ok "Certificat auto-signé généré :"
@@ -206,7 +206,7 @@ generate_letsencrypt() {
 
     info "Arrêt temporaire de Nginx (si en cours d'exécution) pour le mode standalone..."
     sudo systemctl stop nginx 2>/dev/null || true
-    sudo docker stop bazario-nginx 2>/dev/null || true
+    sudo docker stop fasomarket-nginx 2>/dev/null || true
 
     info "Génération des certificats via Let's Encrypt (mode standalone)..."
     echo ""
@@ -301,8 +301,8 @@ renew_certificates() {
 install_auto_renew() {
     step "Installation du renouvellement automatique (cron)"
 
-    local cron_job="0 3 * * * cd ${PROJECT_DIR} && ./scripts/setup-ssl.sh --renew >> /var/log/bazario-ssl-renew.log 2>&1"
-    local cron_file="/etc/cron.d/bazario-ssl-renew"
+    local cron_job="0 3 * * * cd ${PROJECT_DIR} && ./scripts/setup-ssl.sh --renew >> /var/log/fasomarket-ssl-renew.log 2>&1"
+    local cron_file="/etc/cron.d/fasomarket-ssl-renew"
 
     info "Ajout du cron de renouvellement dans ${cron_file}..."
 
@@ -315,7 +315,7 @@ install_auto_renew() {
         fi
     fi
 
-    echo "# Bazario — Renouvellement automatique des certificats SSL Let's Encrypt
+    echo "# FasoMarket — Renouvellement automatique des certificats SSL Let's Encrypt
 # Exécuté tous les jours à 3h du matin
 # Les certificats ne sont réellement renouvelés que si < 30 jours avant expiration
 ${cron_job}
@@ -326,7 +326,7 @@ ${cron_job}
     ok "Cron installé : renouvellement tous les jours à 3h"
     echo ""
     echo "   🔄 Vérification : sudo certbot renew --dry-run"
-    echo "   📋 Logs        : /var/log/bazario-ssl-renew.log"
+    echo "   📋 Logs        : /var/log/fasomarket-ssl-renew.log"
 
     # Test rapide du renouvellement
     info "Test du renouvellement (dry-run)..."
@@ -384,7 +384,7 @@ final_check() {
 interactive_mode() {
     echo ""
     echo -e "${CYAN}╔══════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║      🔐 Configuration SSL — Bazario ${NC}"
+    echo -e "${CYAN}║      🔐 Configuration SSL — FasoMarket ${NC}"
     echo -e "${CYAN}╚══════════════════════════════════════════════════╝${NC}"
     echo ""
 
@@ -427,13 +427,13 @@ interactive_mode() {
 
 echo ""
 echo -e "${BLUE}┌──────────────────────────────────────────────────────────┐${NC}"
-echo -e "${BLUE}│  🔐 Bazario — Configuration SSL/TLS Let's Encrypt         │${NC}"
+echo -e "${BLUE}│  🔐 FasoMarket — Configuration SSL/TLS Let's Encrypt         │${NC}"
 echo -e "${BLUE}└──────────────────────────────────────────────────────────┘${NC}"
 echo ""
 
 case "$MODE" in
     setup)
-        if [ "$DOMAIN" = "api.bazario.com" ] && [ -t 0 ]; then
+        if [ "$DOMAIN" = "api.fasomarket.com" ] && [ -t 0 ]; then
             # Mode interactif si le domaine est celui par défaut et qu'on est dans un terminal
             interactive_mode
         else

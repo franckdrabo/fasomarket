@@ -13,10 +13,10 @@ const API_BASE_URL =
   (__DEV__
     ? 'http://192.168.1.70:3000/api/v1' // IP locale du PC pour Expo Go sur téléphone
           // Pour Android emulator uniquement : 'http://10.0.2.2:3000/api/v1'
-    : 'https://api.bazario.com/api/v1');
+    : 'https://api.fasomarket.com/api/v1');
 
-const TOKEN_KEY = 'bazario_access_token';
-const REFRESH_TOKEN_KEY = 'bazario_refresh_token';
+const TOKEN_KEY = 'fasomarket_access_token';
+const REFRESH_TOKEN_KEY = 'fasomarket_refresh_token';
 
 interface RequestOptions {
   method?: string;
