@@ -1,9 +1,8 @@
 import { io, Socket } from 'socket.io-client';
 import { getAccessToken } from './api';
 
-const SOCKET_URL = __DEV__
-  ? 'http://192.168.1.70:3000/chat'
-  : 'https://api.fasomarket.com/chat';
+const SOCKET_URL = process.env.EXPO_PUBLIC_SOCKET_URL
+  || (__DEV__ ? 'http://localhost:3000/chat' : 'https://api.fasomarket.com/chat');
 
 let socket: Socket | null = null;
 let listeners: Map<string, Set<(...args: any[]) => void>> = new Map();

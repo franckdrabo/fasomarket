@@ -9,10 +9,10 @@ const currentEnv =
   (__DEV__ ? 'development' : 'production');
 
 const API_BASE_URL =
-  Constants.expoConfig?.extra?.apiUrl?.[currentEnv] ??
-  (__DEV__
-    ? 'http://192.168.1.70:3000/api/v1' // IP locale du PC pour Expo Go sur téléphone
-          // Pour Android emulator uniquement : 'http://10.0.2.2:3000/api/v1'
+  process.env.EXPO_PUBLIC_API_URL
+  || Constants.expoConfig?.extra?.apiUrl?.[currentEnv]
+  || (__DEV__
+    ? 'http://localhost:3000/api/v1'
     : 'https://api.fasomarket.com/api/v1');
 
 const TOKEN_KEY = 'fasomarket_access_token';
