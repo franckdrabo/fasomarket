@@ -186,8 +186,8 @@ export class AuthService {
     const status = await provider.checkStatus(reference);
 
     if (status.status !== 'SUCCESS') {
-      // Paiement encore en cours de traitement côté provider (code CinetPay
-      // « en attente ») : on ne clôt PAS la tentative, l'utilisateur peut
+      // Paiement encore en cours de traitement côté provider (statut PENDING)
+      // : on ne clôt PAS la tentative, l'utilisateur peut
       // confirmer à nouveau dans quelques instants (ou attendre le webhook).
       if (status.status === 'PENDING') {
         throw new BadRequestException(

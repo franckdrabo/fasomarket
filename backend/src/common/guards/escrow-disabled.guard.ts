@@ -13,8 +13,8 @@ import { Injectable, CanActivate, ExecutionContext, GoneException, Logger } from
  * pour un éventuel retour en arrière, mais les routes qui créent ou traitent
  * une transaction escrow répondent 410 Gone.
  *
- * Les routes de LECTURE (statut, historique) et le webhook CinetPay restent
- * actifs : le webhook est nécessaire à l'activation vendeur (1 000 FCFA).
+ * Les routes de LECTURE (statut, historique) et le callback LigdiCash restent
+ * actifs : le callback est nécessaire à l'activation vendeur (1 000 FCFA).
  */
 @Injectable()
 export class EscrowDisabledGuard implements CanActivate {

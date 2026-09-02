@@ -58,7 +58,7 @@ describe('PaymentsService.handleProviderCallback', () => {
 
   function mockProviderStatus(status: 'SUCCESS' | 'PENDING' | 'FAILED') {
     mockFactory.getProvider.mockReturnValue({
-      name: 'CINETPAY',
+      name: 'LIGDICASH',
       initiatePayment: jest.fn(),
       checkStatus: jest.fn(),
       processCallback: jest.fn().mockResolvedValue({
@@ -181,7 +181,7 @@ describe('PaymentsService.handleProviderCallback', () => {
       mockProviderStatus('SUCCESS');
       mockFactory.getProvider.mockClear();
       mockFactory.getProvider.mockReturnValue({
-        name: 'CINETPAY',
+        name: 'LIGDICASH',
         initiatePayment: jest.fn(),
         checkStatus: jest.fn(),
         processCallback: jest.fn().mockResolvedValue({
@@ -203,7 +203,7 @@ describe('PaymentsService.handleProviderCallback', () => {
       mockProviderStatus('FAILED');
       mockFactory.getProvider.mockClear();
       mockFactory.getProvider.mockReturnValue({
-        name: 'CINETPAY',
+        name: 'LIGDICASH',
         initiatePayment: jest.fn(),
         checkStatus: jest.fn(),
         processCallback: jest.fn().mockResolvedValue({
@@ -226,7 +226,7 @@ describe('PaymentsService.handleProviderCallback', () => {
       mockProviderStatus('PENDING');
       mockFactory.getProvider.mockClear();
       mockFactory.getProvider.mockReturnValue({
-        name: 'CINETPAY',
+        name: 'LIGDICASH',
         initiatePayment: jest.fn(),
         checkStatus: jest.fn(),
         processCallback: jest.fn().mockResolvedValue({

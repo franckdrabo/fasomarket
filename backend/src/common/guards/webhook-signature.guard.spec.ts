@@ -17,8 +17,8 @@ function mockContext(
     switchToHttp: () => ({
       getRequest: () => ({
         method: 'POST',
-        originalUrl: '/api/v1/payments/webhook/cinetpay',
-        url: '/api/v1/payments/webhook/cinetpay',
+        originalUrl: '/api/v1/payments/webhook/ligdicash',
+        url: '/api/v1/payments/webhook/ligdicash',
         headers: {
           'content-type': 'application/json',
           ...headers,
@@ -149,7 +149,7 @@ describe('WebhookSignatureGuard', () => {
 
   // ─── Signature absente ────────────────────────────────────────────────
 
-  it('devrait accepter sans signature si REQUIRE_WEBHOOK_SIGNATURE est absent (compat CinetPay v1)', () => {
+  it('devrait accepter sans signature si REQUIRE_WEBHOOK_SIGNATURE est absent', () => {
     process.env.WEBHOOK_SECRET = TEST_WEBHOOK_SECRET;
     const ctx = mockContext({}, { cpm_trans_id: 'T1' });
     expect(guard.canActivate(ctx)).toBe(true);

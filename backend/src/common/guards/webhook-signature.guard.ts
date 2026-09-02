@@ -6,7 +6,7 @@ import * as crypto from 'crypto';
 /**
  * WebhookSignatureGuard
  *
- * Vérifie l'authenticité des webhooks entrants (ex: callbacks CinetPay) via
+ * Vérifie l'authenticité des webhooks entrants (ex: callbacks LigdiCash) via
  * une signature HMAC-SHA256 calculée sur le CORPS BRUT de la requête :
  *
  *   X-Signature = HMAC-SHA256(rawBody, WEBHOOK_SECRET)   (hex)
@@ -16,14 +16,13 @@ import * as crypto from 'crypto';
  *
  * Politique d'application :
  *   - WEBHOOK_SECRET non défini        → requête acceptée (mode dev/simulation,
- *     cohérent avec le reste de l'app : Africastalking, CinetPay dégradent en dev).
+ *     cohérent avec le reste de l'app (mode dev/simulation).
  *   - Signature présente               → TOUJOURS vérifiée (comparaison à temps
  *     constant) ; invalide → 401.
- *   - Signature absente                → acceptée par défaut (CinetPay v1 ne
- *     signe PAS ses callbacks avec un secret marchand : l'authenticité repose
- *     alors sur cpm_site_id + la re-vérification serveur /v1/payment/check).
- *     Mettre REQUIRE_WEBHOOK_SIGNATURE=true pour exiger la signature (à activer
- *     une fois qu'un relais signataire existe : proxy, migration v2 CinetPay…).
+ *   - Signature absente                → acceptée par défaut (certaines passerelles
+ *     ne signent pas leurs callbacks ; l'authenticité repose sur la re-vérification
+ *     côté serveur).
+ *     Mettre REQUIRE_WEBHOOK_SIGNATURE=true pour exiger la signature.
  */
 @Injectable()
 export class WebhookSignatureGuard implements CanActivate {
@@ -57,9 +56,8 @@ export class WebhookSignatureGuard implements CanActivate {
         this.logger.warn('🚫 Webhook rejeté : X-Signature manquante (REQUIRE_WEBHOOK_SIGNATURE=true).');
         throw new UnauthorizedException('Signature webhook manquante');
       }
-      // Compatibilité CinetPay v1 : les callbacks ne sont jamais signés,
-      // ce chemin est donc le cas normal en production → niveau debug.
-      this.logger.debug('Webhook sans signature accepté (compat CinetPay v1).');
+      // Callback sans signature accepté (la passerelle ne signe pas ses callbacks).
+      this.logger.debug('Webhook sans signature accepté.');
       return true;
     }
 

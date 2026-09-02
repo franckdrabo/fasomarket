@@ -419,7 +419,7 @@ describe('AuthService', () => {
     });
 
     it('devrait signaler un paiement encore en cours (PENDING) sans activer le compte', async () => {
-      // Simuler un provider qui renvoie PENDING (code CinetPay « en attente »)
+      // Simuler un provider qui renvoie PENDING (paiement en cours)
       const mobileMoneyFactory = module.get<MobileMoneyFactory>(MobileMoneyFactory);
       (mobileMoneyFactory.getProvider as jest.Mock).mockReturnValueOnce({
         name: 'ORANGE_MONEY',

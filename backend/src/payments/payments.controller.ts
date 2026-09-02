@@ -5,7 +5,6 @@ import { MobileMoneyPaymentDto, AdminStatsQueryDto } from './payments.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { AdminGuard } from '../common/guards/admin.guard';
-import { WebhookSignatureGuard } from '../common/guards/webhook-signature.guard';
 import { EscrowDisabledGuard } from '../common/guards/escrow-disabled.guard';
 
 @ApiTags('payments')
@@ -50,21 +49,16 @@ export class PaymentsController {
     return this.paymentsService.getAdminStats(query.periode);
   }
 
-  // ─── Webhook CinetPay (public, vérification serveur) ───────────────────
-  // CinetPay notifie via notify_url (unique pour tous les opérateurs).
-  // On ne se fie JAMAIS au payload brut : CinetPayService.processCallback
-  // re-vérifie le statut côté serveur via /v1/payment/check ET valide
-  // cpm_site_id. WebhookSignatureGuard ajoute la signature HMAC
-  // (X-Signature: HMAC-SHA256(rawBody, WEBHOOK_SECRET)) quand elle est
-  // fournie, et en exige une si REQUIRE_WEBHOOK_SIGNATURE=true.
+  // ─── Callback LigdiCash (public, notification de paiement) ────────────
+  // LigdiCash notifie via callback_url quand le statut d'une facture change.
+  // Le payload contient custom_data avec transaction_id pour identifier la transaction.
+  // On re-vérifie toujours le statut côté serveur via l'endpoint confirm.
 
-  @UseGuards(WebhookSignatureGuard)
-  @Post('webhook/cinetpay')
-  @ApiHeader({ name: 'X-Signature', required: false, description: 'HMAC-SHA256 du corps brut signé avec WEBHOOK_SECRET (exigée si REQUIRE_WEBHOOK_SIGNATURE=true)' })
-  @ApiHeader({ name: 'X-Timestamp', required: false, description: 'Timestamp UNIX en ms (anti-replay, ±5 min)' })
-  @ApiOperation({ summary: 'Webhook CinetPay', description: 'Notification de paiement CinetPay (Orange Money, Moov Money, Wave). Authenticité vérifiée : signature HMAC (si fournie), cpm_site_id, puis re-vérification côté serveur via l\'endpoint de check CinetPay.' })
+  @Post('webhook/ligdicash')
+  @ApiHeader({ name: 'X-LigdiCash-Signature', required: false, description: 'Signature de verification (si configurée)' })
+  @ApiOperation({ summary: 'Callback LigdiCash', description: 'Notification de paiement LigdiCash (Orange Money, Moov Money, Wave, MTN). Authenticité vérifiée via re-vérification côté serveur.' })
   @ApiOkResponse({ description: 'Callback traité' })
-  async cinetpayCallback(@Body() payload: any) {
-    return this.paymentsService.handleProviderCallback('CINETPAY', payload);
+  async ligdicashCallback(@Body() payload: any) {
+    return this.paymentsService.handleProviderCallback('LIGDICASH', payload);
   }
 }

@@ -237,7 +237,7 @@ export class PaymentsService {
       });
     } else {
       // Paiement encore en cours de traitement côté provider → aucune action
-      // définitive (CinetPay renverra un nouveau callback).
+      // définitive (le provider renverra un nouveau callback).
       this.logger.log(`⏳ Paiement en attente (webhook), aucun changement de statut: ${transaction.id}`);
     }
 
