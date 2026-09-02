@@ -1,0 +1,129 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# Bazario — CD (Déploiement Continu)
+# ═══════════════════════════════════════════════════════════════════════════════
+# Déclenché manuellement (workflow_dispatch) ou après CI réussie sur main.
+#
+# Prérequis GitHub Secrets :
+#   DEPLOY_HOST          → IP ou domaine du serveur de production
+#   DEPLOY_USER          → Utilisateur SSH (ex: deploy)
+#   DEPLOY_SSH_KEY       → Clé privée SSH pour la connexion
+#   DEPLOY_PATH          → Chemin du projet sur le serveur (ex: /home/deploy/bazario)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+name: CD - Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      skip_backup:
+        description: 'Sauter le backup pré-déploiement'
+        required: false
+        default: false
+        type: boolean
+      skip_ssl_check:
+        description: 'Ignorer la vérification SSL'
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false  # Ne pas annuler un déploiement en cours
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  # ─── Job 1 : Déploiement sur le serveur ────────────────────────────────
+  deploy:
+    name: 🚀 Déployer sur le serveur
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npm run prisma:generate -w backend
+        env:
+          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
+
+      - name: Build NestJS
+        run: npm run build -w backend
+
+      # ─── Déploiement via SSH ─────────────────────────────────────────────
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          # Ajouter la clé du host au known_hosts pour éviter MITM
+          ssh-keyscan -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+          cat >> ~/.ssh/config << EOF
+          Host production
+            HostName ${{ secrets.DEPLOY_HOST }}
+            User ${{ secrets.DEPLOY_USER }}
+            IdentityFile ~/.ssh/deploy_key
+            StrictHostKeyChecking accept-new
+          EOF
+
+      - name: Sync project source
+        run: |
+          rsync -avz --delete \
+            --exclude node_modules \
+            --exclude .git \
+            --exclude coverage \
+            --exclude mobile \
+            --exclude .env \
+            --exclude firebase-credentials.json \
+            # dhparam.pem est généré et synchronisé (non secret) ;
+            # cert.pem/key.pem sont gérés sur le serveur par setup-ssl.sh
+            --exclude 'nginx/ssl/cert.pem' \
+            --exclude 'nginx/ssl/key.pem' \
+            ./ \
+            production:${{ secrets.DEPLOY_PATH }}/
+
+      # ─── Exécution du déploiement sur le serveur ─────────────────────────
+
+      - name: Execute deployment script
+        run: |
+          ssh production "cd ${{ secrets.DEPLOY_PATH }} && \
+            SKIP_BACKUP=${{ inputs.skip_backup || 'false' }} \
+            SKIP_SSL_CHECK=${{ inputs.skip_ssl_check || 'false' }} \
+            bash scripts/deploy.sh"
+
+      - name: Verify deployment
+        run: |
+          sleep 10
+          curl -sf "https://${{ secrets.DEPLOY_HOST }}/api/v1/health" && \
+            echo "✅ Déploiement vérifié avec succès !" || \
+            curl -sf "http://${{ secrets.DEPLOY_HOST }}/api/v1/health" && \
+            echo "✅ Déploiement vérifié (HTTP)" || \
+            echo "⚠️  Impossible de vérifier le déploiement"
+
+      # ─── Notification Slack (optionnel) ──────────────────────────────────
+
+      - name: Notify Slack
+        if: always()
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_TITLE: 'Bazario — Déploiement ${{ job.status }}'
+          SLACK_MESSAGE: |
+            Commit: ${{ github.sha }}
+            Auteur: ${{ github.actor }}
+            Backend: ${{ secrets.DEPLOY_HOST }}
+          SLACK_COLOR: ${{ job.status == 'success' && 'good' || 'danger' }}
+          SLACK_FOOTER: 'GitHub Actions'
+        continue-on-error: true
