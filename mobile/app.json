@@ -40,8 +40,9 @@
     },
     "updates": {
       "url": "https://u.expo.dev/aa3fb2ee-7a71-4ba1-b41a-07ae2f7e433f",
-      "fallbackToCacheTimeout": 0,
-      "enabled": true
+      "fallbackToCacheTimeout": 5000,
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD"
     },
     "runtimeVersion": {
       "policy": "sdkVersion"
@@ -51,13 +52,12 @@
         "projectId": "aa3fb2ee-7a71-4ba1-b41a-07ae2f7e433f"
       },
       "apiUrl": {
-        "development": "http://10.0.2.2:3000/api/v1",
+        "development": "http://192.168.1.79:3000/api/v1",
         "staging": "https://staging-api.bazario.com/api/v1",
         "production": "https://api.bazario.com/api/v1"
       }
     },
     "plugins": [
-      "expo-router",
       [
         "expo-local-authentication",
         {
@@ -76,7 +76,9 @@
         {
           "photosPermission": "Bazario a besoin d'accéder à vos photos pour ajouter des images à vos annonces."
         }
-      ]
+      ],
+      "expo-font",
+      "expo-secure-store"
     ]
   }
 }

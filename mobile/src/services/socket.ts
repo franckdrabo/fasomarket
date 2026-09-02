@@ -2,7 +2,7 @@ import { io, Socket } from 'socket.io-client';
 import { getAccessToken } from './api';
 
 const SOCKET_URL = __DEV__
-  ? 'http://10.0.2.2:3000/chat'
+  ? 'http://192.168.1.70:3000/chat'
   : 'https://api.bazario.com/chat';
 
 let socket: Socket | null = null;

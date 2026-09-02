@@ -22,7 +22,7 @@ export class NotificationsService {
     const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
     if (serviceAccountPath) {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const serviceAccount = require(serviceAccountPath);
         initializeApp({ credential: cert(serviceAccount) });
         this.initialized = true;

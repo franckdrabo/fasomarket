@@ -2,12 +2,8 @@ import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { PaymentsController } from './payments.controller';
 import { PaymentsService } from './payments.service';
-import {
-  OrangeMoneyService,
-  MoovMoneyService,
-  WaveMoneyService,
-  MobileMoneyFactory,
-} from './mobile-money.service';
+import { CinetPayService, MobileMoneyFactory } from './mobile-money.service';
+import { FedaPayService } from './fedapay.service';
 import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
@@ -15,9 +11,8 @@ import { NotificationsModule } from '../notifications/notifications.module';
   controllers: [PaymentsController],
   providers: [
     PaymentsService,
-    OrangeMoneyService,
-    MoovMoneyService,
-    WaveMoneyService,
+    CinetPayService,
+    FedaPayService,
     MobileMoneyFactory,
   ],
   exports: [PaymentsService, MobileMoneyFactory],

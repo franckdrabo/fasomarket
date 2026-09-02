@@ -6,15 +6,19 @@ import {
   TouchableOpacity,
   StyleSheet,
   RefreshControl,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, { FadeIn } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../services/api';
 import { useAuthStore } from '../stores/authStore';
 import { Conversation } from '../types';
+import EmptyState from '../components/EmptyState';
 import { colors, spacing, borderRadius, typography, shadows } from '../theme';
 
-// Données mock pour le développement (utilise user?.id comme référence)
+// Données mock pour le développement
 function createMockConversations(userId: string | undefined): Conversation[] {
   const moi = userId || 'current';
   return [
@@ -64,7 +68,7 @@ function createMockConversations(userId: string | undefined): Conversation[] {
       vendeur: { id: 'v4', nom: 'Fatou S.' },
       messages: [
         {
-          id: 'm4', contenu: 'D\'accord pour 25000 FCFA', type: 'TEXTE',
+          id: 'm4', contenu: "D'accord pour 25000 FCFA", type: 'TEXTE',
           timestamp: new Date(Date.now() - 172800000).toISOString(), lu: true, expediteurId: 'v4',
         },
       ],
@@ -88,9 +92,19 @@ export default function ConversationsListScreen({ onConversationPress }: Props) 
   async function fetchConversations() {
     setLoading(true);
     try {
-      // En prod: appeler l'API réelle
-      // const data = await api.conversations.list();
-      // setConversations(data);
+      let loaded: Conversation[];
+
+      try {
+        // Interroger le vrai backend
+        const data = await api.conversations.list() as any;
+        loaded = Array.isArray(data) ? data : data.data || [];
+      } catch (apiError) {
+        // Backend injoignable → repli sur les conversations de démo
+        console.warn('Conversations: backend injoignable, démo affichée');
+        loaded = createMockConversations(user?.id);
+      }
+
+      setConversations(loaded);
     } catch (error) {
       console.error('Erreur chargement conversations:', error);
     } finally {
@@ -133,7 +147,7 @@ export default function ConversationsListScreen({ onConversationPress }: Props) 
     return `Il y a ${Math.floor(diffDays / 7)} sem`;
   }
 
-  function renderConversation({ item }: { item: Conversation }) {
+  function renderConversation({ item, index }: { item: Conversation; index: number }) {
     const other = getOtherParticipant(item);
     const lastMsg = getLastMessage(item);
     const nonLu = getNonLuCount(item);
@@ -141,105 +155,157 @@ export default function ConversationsListScreen({ onConversationPress }: Props) 
 
     const messagePreview = lastMsg
       ? lastMsg.type === 'OFFRE'
-        ? `💰 Proposition: ${lastMsg.contenu}`
+        ? `💰 ${lastMsg.contenu}`
         : lastMsg.contenu
       : 'Aucun message';
 
     return (
-      <TouchableOpacity
-        style={styles.convItem}
-        onPress={() => onConversationPress(item)}
-        activeOpacity={0.7}
-      >
-        <View style={[styles.avatar, nonLu > 0 && styles.avatarActive]}>
-          <Ionicons name="person" size={22} color={nonLu > 0 ? colors.textOnPrimary : colors.textSecondary} />
-        </View>
-        <View style={styles.convContent}>
-          <View style={styles.convHeader}>
-            <Text style={[styles.convName, nonLu > 0 && styles.convNameUnread]}>
-              {other.nom}
-            </Text>
-            {lastMsg && (
-              <Text style={styles.convTime}>{getTimeAgo(lastMsg.timestamp)}</Text>
+      <Animated.View entering={FadeIn.duration(400).delay(index * 80)}>
+        <TouchableOpacity
+          style={styles.convItem}
+          onPress={() => onConversationPress(item)}
+          activeOpacity={0.7}
+        >
+          <View style={[styles.avatar, nonLu > 0 && styles.avatarActive]}>
+            {other.avatar ? (
+              <Image source={{ uri: other.avatar }} style={styles.avatarImage} />
+            ) : (
+              <Ionicons
+                name="person"
+                size={22}
+                color={nonLu > 0 ? colors.textOnPrimary : colors.primary}
+              />
             )}
           </View>
-          <View style={styles.convMeta}>
+          <View style={styles.convContent}>
+            <View style={styles.convHeader}>
+              <Text style={[styles.convName, nonLu > 0 && styles.convNameUnread]} numberOfLines={1}>
+                {other.nom}
+              </Text>
+              {lastMsg && (
+                <Text style={styles.convTime}>{getTimeAgo(lastMsg.timestamp)}</Text>
+              )}
+            </View>
             <Text style={styles.articleRef} numberOfLines={1}>
               {item.article.titre} - {formattedPrice} FCFA
             </Text>
+            <View style={styles.convPreview}>
+              <Text
+                style={[styles.convMessage, nonLu > 0 && styles.convMessageUnread]}
+                numberOfLines={1}
+              >
+                {messagePreview}
+              </Text>
+              {nonLu > 0 && (
+                <View style={styles.unreadBadge}>
+                  <Text style={styles.unreadText}>{nonLu}</Text>
+                </View>
+              )}
+            </View>
           </View>
-          <View style={styles.convPreview}>
-            <Text
-              style={[styles.convMessage, nonLu > 0 && styles.convMessageUnread]}
-              numberOfLines={1}
-            >
-              {messagePreview}
-            </Text>
-            {nonLu > 0 && (
-              <View style={styles.unreadBadge}>
-                <Text style={styles.unreadText}>{nonLu}</Text>
-              </View>
-            )}
-          </View>
-        </View>
-      </TouchableOpacity>
+          <Ionicons name="chevron-forward" size={18} color={colors.disabled} style={{ marginLeft: 4 }} />
+        </TouchableOpacity>
+      </Animated.View>
     );
   }
 
   function renderEmpty() {
     if (loading) return null;
     return (
-      <View style={styles.emptyContainer}>
-        <Ionicons name="chatbubbles-outline" size={64} color={colors.disabled} />
-        <Text style={styles.emptyTitle}>Aucune conversation</Text>
-        <Text style={styles.emptySubtitle}>
-          Contactez un vendeur depuis une annonce{'\n'}pour démarrer une discussion
-        </Text>
-      </View>
+      <EmptyState
+        icon="chatbubbles-outline"
+        title="Aucune conversation"
+        description="Contactez un vendeur depuis une annonce pour démarrer une discussion"
+      />
     );
   }
 
   return (
-    <View style={styles.container}>
-      <SafeAreaView edges={['top']} style={styles.header}>
-        <Text style={styles.headerTitle}>Messages</Text>
-        <Text style={styles.headerSubtitle}>
-          {conversations.length} conversation{conversations.length !== 1 ? 's' : ''}
-        </Text>
-      </SafeAreaView>
+    <LinearGradient
+      colors={['#FDDCB5', '#FFF0E0', '#FFF8F0']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0, y: 1 }}
+      style={styles.container}
+    >
+      {/* Decorative circles */}
+      <View style={styles.decorCircle1} />
+      <View style={styles.decorCircle2} />
 
-      <FlatList
-        data={conversations}
-        renderItem={renderConversation}
-        keyExtractor={(item) => item.id}
-        ListEmptyComponent={renderEmpty}
-        contentContainerStyle={styles.list}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.primary}
-            colors={[colors.primary]}
-          />
-        }
-      />
-    </View>
+      <SafeAreaView edges={['top']} style={styles.safeArea}>
+        {/* Header */}
+        <Animated.View entering={FadeIn.duration(600)} style={styles.header}>
+          <View>
+            <Text style={styles.headerTitle}>Messages</Text>
+            <Text style={styles.headerSubtitle}>
+              {conversations.length > 0
+                ? `${conversations.length} conversation${conversations.length !== 1 ? 's' : ''}`
+                : 'Aucune conversation'}
+            </Text>
+          </View>
+          <View style={styles.headerIcon}>
+            <Ionicons name="chatbubble-ellipses" size={24} color={colors.primary} />
+          </View>
+        </Animated.View>
+
+        <FlatList
+          data={conversations}
+          renderItem={renderConversation}
+          keyExtractor={(item) => item.id}
+          ListEmptyComponent={renderEmpty}
+          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
+            />
+          }
+        />
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
+  safeArea: {
+    flex: 1,
+  },
+
+  // Decorative
+  decorCircle1: {
+    position: 'absolute',
+    top: -30,
+    left: -20,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: '#FF6B35',
+    opacity: 0.10,
+  },
+  decorCircle2: {
+    position: 'absolute',
+    bottom: 100,
+    right: -15,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#2ECC71',
+    opacity: 0.06,
+  },
+
+  // Header
   header: {
-    backgroundColor: colors.surface,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: spacing.md,
     paddingTop: spacing.md,
     paddingBottom: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
   headerTitle: {
     ...typography.h2,
@@ -248,21 +314,34 @@ const styles = StyleSheet.create({
     ...typography.bodySmall,
     marginTop: 2,
   },
+  headerIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.surfaceVariant,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shadows.sm,
+  },
+
+  // List
   list: {
-    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    paddingTop: spacing.xs,
+    paddingBottom: spacing.xxl,
     flexGrow: 1,
   },
 
-  // Item
+  // Conversation item
   convItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
+    padding: spacing.md,
     backgroundColor: colors.surface,
-    marginHorizontal: spacing.sm,
-    marginBottom: spacing.xs,
+    marginBottom: spacing.sm,
     borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
     ...shadows.sm,
   },
   avatar: {
@@ -273,6 +352,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.md,
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
   },
   avatarActive: {
     backgroundColor: colors.primary,
@@ -298,12 +382,10 @@ const styles = StyleSheet.create({
     ...typography.caption,
     color: colors.textSecondary,
   },
-  convMeta: {
-    marginTop: 2,
-  },
   articleRef: {
     ...typography.caption,
     color: colors.textSecondary,
+    marginTop: 2,
   },
   convPreview: {
     flexDirection: 'row',
@@ -342,10 +424,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: spacing.xxl * 2,
   },
+  emptyIconWrapper: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: colors.surfaceVariant,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+    ...shadows.sm,
+  },
   emptyTitle: {
     ...typography.h3,
     color: colors.textSecondary,
-    marginTop: spacing.md,
+    marginTop: spacing.sm,
   },
   emptySubtitle: {
     ...typography.bodySmall,

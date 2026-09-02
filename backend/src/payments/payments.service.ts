@@ -36,6 +36,7 @@ export class PaymentsService {
       telephone: dto.telephone,
       reference: transaction.referencePaiement || transaction.id,
       description: `Paiement ${transaction.article.titre.substring(0, 50)} - Bazario`,
+      operateur: dto.moyenPaiement,
     });
 
     if (!result.success) {
@@ -69,6 +70,7 @@ export class PaymentsService {
       providerReference: result.providerReference,
       provider: provider.name,
       transactionId: transaction.id,
+      ...(result.paymentUrl ? { paymentUrl: result.paymentUrl } : {}),
     };
   }
 
@@ -76,6 +78,55 @@ export class PaymentsService {
     const providerService = this.mobileMoneyFactory.getProvider(provider.toUpperCase());
     const callbackData = await providerService.processCallback(payload);
 
+    // ─── Vérifier d'abord si c'est un paiement d'activation vendeur ──────
+    const sellerActivation = await this.prisma.user.findFirst({
+      where: {
+        sellerFeeRef: callbackData.reference,
+        sellerFeePending: true,
+      },
+    });
+
+    if (sellerActivation) {
+      if (callbackData.status === 'SUCCESS') {
+        await this.prisma.user.update({
+          where: { id: sellerActivation.id },
+          data: {
+            // Upgrade BUYER → SELLER : le paiement des frais valide le statut vendeur
+            role: 'SELLER',
+            sellerFeePaid: true,
+            sellerFeePending: false,
+            sellerFeeRef: null,
+            sellerFeeProvider: null,
+          },
+        });
+        this.logger.log(`✅ Activation vendeur confirmée (webhook): ${sellerActivation.id}`);
+
+        // Notifier l'utilisateur que son compte vendeur est activé
+        await this.notificationsService.sendToUser(sellerActivation.id, {
+          title: '🎉 Compte vendeur activé !',
+          body: 'Votre paiement de 1 000 FCFA a été confirmé. Vous pouvez maintenant vendre sur Bazario.',
+          data: { type: 'seller_activated' },
+        });
+      } else if (callbackData.status === 'FAILED') {
+        // Paiement échoué → réinitialiser la tentative
+        await this.prisma.user.update({
+          where: { id: sellerActivation.id },
+          data: {
+            sellerFeePending: false,
+            sellerFeePendingAt: null,
+            sellerFeeRef: null,
+            sellerFeeProvider: null,
+          },
+        });
+        this.logger.warn(`❌ Activation vendeur échouée (webhook): ${sellerActivation.id}`);
+      } else {
+        // Paiement encore en cours → on laisse la tentative en attente
+        this.logger.log(`⏳ Activation vendeur toujours en attente (webhook): ${sellerActivation.id}`);
+      }
+      return { received: true };
+    }
+
+    // ─── Sinon, traiter comme une transaction escrow classique ────────────
     const transaction = await this.prisma.transaction.findFirst({
       where: {
         OR: [
@@ -151,21 +202,43 @@ export class PaymentsService {
       });
 
       this.logger.log(`✅ Paiement confirmé pour ${transaction.id}: ${callbackData.providerReference}`);
-    } else {
-      // Paiement échoué
+    } else if (callbackData.status === 'FAILED') {
+      // On ne traite l'échec comme définitif que si la transaction est encore
+      // EN_ATTENTE : si elle est déjà BLOQUE (fonds en escrow), un callback
+      // FAILED tardif/dupliqué ne doit PAS la dégrader ni libérer l'article.
+      if (transaction.statutEscrow !== 'EN_ATTENTE') {
+        this.logger.warn(`⚠️ Callback FAILED ignoré pour ${transaction.id} (statut actuel: ${transaction.statutEscrow})`);
+        return { received: true };
+      }
+
+      // Paiement échoué (statut serveur définitif : refus, solde insuffisant,
+      // annulation, expiration…) → la transaction est remboursée ET l'article
+      // redevient disponible pour un nouvel essai (sinon l'acheteur resterait
+      // bloqué sur un article RESERVE alors que rien n'a été payé).
       await this.prisma.transaction.update({
         where: { id: transaction.id },
         data: { statutEscrow: 'REMBOURSE' },
       });
 
+      // Remettre l'article en ligne (uniquement s'il était réservé pour cette
+      // transaction — ne jamais toucher un article déjà vendu).
+      await this.prisma.article.updateMany({
+        where: { id: transaction.articleId, statut: 'RESERVE' },
+        data: { statut: 'EN_LIGNE' },
+      });
+
       await this.notificationsService.sendToUser(transaction.acheteurId, {
         title: '❌ Paiement échoué',
-        body: `Le paiement de ${transaction.montant.toLocaleString()} FCFA via ${provider} a échoué. Veuillez réessayer avec un autre moyen de paiement.`,
+        body: `Le paiement de ${transaction.montant.toLocaleString()} FCFA via ${provider} a échoué. Vous pouvez réessayer.`,
         data: {
           type: 'payment_failed',
           transactionId: transaction.id,
         },
       });
+    } else {
+      // Paiement encore en cours de traitement côté provider → aucune action
+      // définitive (CinetPay renverra un nouveau callback).
+      this.logger.log(`⏳ Paiement en attente (webhook), aucun changement de statut: ${transaction.id}`);
     }
 
     return { received: true };

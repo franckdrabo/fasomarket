@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { api } from '../services/api';
+import { compressImage } from '../utils/imageUtils';
 import { colors, spacing, borderRadius, typography, shadows } from '../theme';
 
 interface Props {
@@ -50,7 +51,7 @@ export default function CreateArticleScreen({ onBack, onSuccess }: Props) {
 
   async function pickImages() {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsMultipleSelection: true,
       selectionLimit: 6 - photos.length,
       quality: 0.8,
@@ -126,8 +127,11 @@ export default function CreateArticleScreen({ onBack, onSuccess }: Props) {
       if (photos.length > 0) {
         setUploadingPhotos(true);
         for (const uri of photos) {
+          // 1. Compression de l'image avant l'upload
+          const compressedUri = await compressImage(uri, 1200, 0.7);
+
           const file = {
-            uri: Platform.OS === 'ios' ? uri.replace('file://', '') : uri,
+            uri: Platform.OS === 'ios' ? compressedUri.replace('file://', '') : compressedUri,
             type: 'image/jpeg' as const,
             name: `photo-${Date.now()}.jpg`,
           };
@@ -330,7 +334,7 @@ export default function CreateArticleScreen({ onBack, onSuccess }: Props) {
               </Text>
             </View>
           ) : (
-            <Text style={styles.submitButtonText}>Publier l'annonce</Text>
+            <Text style={styles.submitButtonText}>Publier l&apos;annonce</Text>
           )}
         </TouchableOpacity>
       </SafeAreaView>

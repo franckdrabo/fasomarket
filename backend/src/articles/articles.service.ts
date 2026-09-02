@@ -7,6 +7,20 @@ export class ArticlesService {
   constructor(private prisma: PrismaService) {}
 
   async create(vendeurId: string, dto: CreateArticleDto) {
+    // Seuls les comptes vendeurs ayant payé les frais d'activation (1 000 FCFA)
+    // peuvent publier des annonces. Protection côté serveur : ne jamais se fier
+    // uniquement au gating de l'app mobile.
+    const vendeur = await this.prisma.user.findUnique({
+      where: { id: vendeurId },
+      select: { role: true, sellerFeePaid: true },
+    });
+
+    if (!vendeur || vendeur.role !== 'SELLER' || !vendeur.sellerFeePaid) {
+      throw new ForbiddenException(
+        'Compte vendeur non activé : payez les frais d\'activation de 1 000 FCFA pour publier des annonces.',
+      );
+    }
+
     return this.prisma.article.create({
       data: {
         ...dto,
@@ -86,6 +100,18 @@ export class ArticlesService {
 
     await this.prisma.article.delete({ where: { id } });
     return { message: 'Article supprimé' };
+  }
+
+  async findByUser(userId: string) {
+    return this.prisma.article.findMany({
+      where: { vendeurId: userId },
+      orderBy: { dateCreation: 'desc' },
+      include: {
+        vendeur: {
+          select: { id: true, nom: true, avatar: true, ville: true, noteMoyenne: true },
+        },
+      },
+    });
   }
 
   async markAsSold(id: string, userId: string) {

@@ -32,22 +32,43 @@ export class ConversationsService {
     });
   }
 
-  async findByUser(userId: string) {
-    return this.prisma.conversation.findMany({
-      where: {
-        OR: [{ acheteurId: userId }, { vendeurId: userId }],
-      },
-      include: {
-        article: { select: { id: true, titre: true, prix: true, photos: true } },
-        acheteur: { select: { id: true, nom: true, avatar: true } },
-        vendeur: { select: { id: true, nom: true, avatar: true } },
-        messages: {
-          orderBy: { timestamp: 'desc' },
-          take: 1,
+  async findByUser(userId: string, page: number = 1, limit: number = 20) {
+    const skip = (page - 1) * limit;
+
+    const [conversations, total] = await Promise.all([
+      this.prisma.conversation.findMany({
+        where: {
+          OR: [{ acheteurId: userId }, { vendeurId: userId }],
         },
+        include: {
+          article: { select: { id: true, titre: true, prix: true, photos: true } },
+          acheteur: { select: { id: true, nom: true, avatar: true } },
+          vendeur: { select: { id: true, nom: true, avatar: true } },
+          messages: {
+            orderBy: { timestamp: 'desc' },
+            take: 1,
+          },
+        },
+        orderBy: { updatedAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.conversation.count({
+        where: {
+          OR: [{ acheteurId: userId }, { vendeurId: userId }],
+        },
+      }),
+    ]);
+
+    return {
+      data: conversations,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
       },
-      orderBy: { updatedAt: 'desc' },
-    });
+    };
   }
 
   async findById(id: string, userId: string) {

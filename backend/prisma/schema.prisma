@@ -8,24 +8,41 @@ datasource db {
 }
 
 // ─── User ────────────────────────────────────────────────────────────────────
+// PII sensibles chiffrés en AES-256-GCM via le EncryptionService :
+//   - emailEncrypted : email de l'utilisateur (PII critique)
+//   - refreshTokenEncrypted : refresh token JWT (secret cryptographique)
+//
+// Le champ `nom` reste en clair car c'est un nom d'affichage public
+// visible sur toutes les annonces et conversations.
+//
+// emailHash permet la recherche par email sans déchiffrer toutes les lignes.
 model User {
-  id            String    @id @default(cuid())
-  phone         String    @unique
-  nom           String
-  avatar        String?
-  ville         String?
-  bio           String?
-  noteMoyenne   Float     @default(0)
-  nbVentes      Int       @default(0)
-  nbAchats      Int       @default(0)
-  badgeVerifie  Boolean   @default(false)
-  otpSecret     String?
-  otpExpiresAt  DateTime?
-  refreshToken  String?
-  fcmTokens     String[]
-  biometricEnabled Boolean @default(false)
-  dateCreation  DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                  String    @id @default(cuid())
+  phone               String    @unique
+  emailEncrypted      Bytes?              // Chiffré AES-256-GCM
+  emailHash           String?   @unique   // HMAC-SHA256 pour lookup email
+  password            String?             // Hashé avec bcrypt (salt 12)
+  nom                 String              // Nom d'affichage public
+  avatar              String?
+  ville               String?
+  bio                 String?
+  role                Role      @default(BUYER)
+  sellerFeePaid       Boolean   @default(false)
+  sellerFeePending    Boolean   @default(false)   // Paiement d'activation en cours
+  sellerFeePendingAt  DateTime?                   // Horodatage de la tentative (pour expiration)
+  sellerFeeRef        String?                     // Référence du paiement (provider)
+  sellerFeeProvider   String?                     // Opérateur utilisé (ORANGE_MONEY, MOOV_MONEY, WAVE)
+  noteMoyenne         Float     @default(0)
+  nbVentes            Int       @default(0)
+  nbAchats            Int       @default(0)
+  badgeVerifie        Boolean   @default(false)
+  otpSecret           String?             // Hashé avec argon2 (argon2id)
+  otpExpiresAt        DateTime?
+  refreshTokenEncrypted Bytes?            // Chiffré AES-256-GCM
+  fcmTokens           String[]
+  biometricEnabled    Boolean   @default(false)
+  dateCreation        DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   articlesVendus      Article[]
   conversationsAcheteur Conversation[] @relation("ConversationAcheteur")
@@ -61,6 +78,7 @@ model Article {
   transactions  Transaction[]
   favoris       Favori[]
 
+  @@index([vendeurId], map: "idx_articles_vendeurId")
   @@map("articles")
 }
 
@@ -78,6 +96,9 @@ model Conversation {
   vendeur  User     @relation("ConversationVendeur", fields: [vendeurId], references: [id])
   messages Message[]
 
+  @@index([acheteurId], map: "idx_conversations_acheteurId")
+  @@index([vendeurId], map: "idx_conversations_vendeurId")
+  @@index([articleId], map: "idx_conversations_articleId")
   @@map("conversations")
 }
 
@@ -95,6 +116,8 @@ model Message {
   conversation Conversation @relation(fields: [conversationId], references: [id])
   expediteur   User         @relation(fields: [expediteurId], references: [id])
 
+  @@index([conversationId], map: "idx_messages_conversationId")
+  @@index([expediteurId], map: "idx_messages_expediteurId")
   @@map("messages")
 }
 
@@ -105,6 +128,7 @@ model Transaction {
   acheteurId      String
   vendeurId       String
   montant         Float
+  commissionBazario Float       @default(0)
   fraisService    Float         @default(0)
   statutEscrow    StatutEscrow  @default(EN_ATTENTE)
   moyenPaiement   MoyenPaiement
@@ -119,6 +143,10 @@ model Transaction {
   vendeur  User    @relation("TransactionVendeur", fields: [vendeurId], references: [id])
   avis     Avis?
 
+  @@index([acheteurId], map: "idx_transactions_acheteurId")
+  @@index([vendeurId], map: "idx_transactions_vendeurId")
+  @@index([articleId], map: "idx_transactions_articleId")
+  @@index([statutEscrow], map: "idx_transactions_statutEscrow")
   @@map("transactions")
 }
 
@@ -151,6 +179,8 @@ model NotificationHistory {
 
   user User @relation(fields: [userId], references: [id])
 
+  @@index([userId], map: "idx_notification_history_userId")
+  @@index([userId, status], map: "idx_notification_history_userId_status")
   @@map("notification_history")
 }
 
@@ -168,6 +198,8 @@ model Avis {
   auteur      User        @relation("AvisAuteur", fields: [auteurId], references: [id])
   cible       User        @relation("AvisCible", fields: [cibleId], references: [id])
 
+  @@index([auteurId], map: "idx_avis_auteurId")
+  @@index([cibleId], map: "idx_avis_cibleId")
   @@map("avis")
 }
 
@@ -206,6 +238,12 @@ enum StatutEscrow {
   LIBERE
   LITIGE
   REMBOURSE
+}
+
+enum Role {
+  BUYER
+  SELLER
+  ADMIN
 }
 
 enum MoyenPaiement {

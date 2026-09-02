@@ -279,13 +279,16 @@ describe('TransactionsService', () => {
 
     it('devrait retourner les transactions d\'un utilisateur', async () => {
       const result = await service.findByUser('acheteur-1');
-      expect(result).toHaveLength(1);
-      expect(result[0].acheteurId).toBe('acheteur-1');
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0].acheteurId).toBe('acheteur-1');
+      expect(result.pagination).toBeDefined();
+      expect(result.pagination.total).toBe(1);
     });
 
     it('devrait retourner un tableau vide si aucune transaction', async () => {
       const result = await service.findByUser('user-inexistant');
-      expect(result).toHaveLength(0);
+      expect(result.data).toHaveLength(0);
+      expect(result.pagination.total).toBe(0);
     });
   });
 

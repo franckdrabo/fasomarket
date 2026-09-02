@@ -58,7 +58,16 @@ export class UsersService {
   async getAvisRecus(userId: string) {
     return this.prisma.avis.findMany({
       where: { cibleId: userId },
-      include: { auteur: { select: { id: true, nom: true, avatar: true } } },
+      include: {
+        auteur: { select: { id: true, nom: true, avatar: true } },
+        transaction: {
+          select: {
+            id: true,
+            montant: true,
+            article: { select: { id: true, titre: true } },
+          },
+        },
+      },
       orderBy: { dateCreation: 'desc' },
     });
   }

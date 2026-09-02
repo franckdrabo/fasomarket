@@ -11,6 +11,9 @@ node_modules/
 # Firebase credentials (sensible — NE PAS COMMITTER !)
 firebase-credentials.json
 
+# Proxy App.js pour Expo AppEntry.js (workaround hoisting)
+/App.js
+
 # Build outputs
 backend/dist/
 mobile/.expo/
@@ -20,6 +23,14 @@ mobile/ios/
 
 # Docker
 nginx/ssl/
+# Certificats + comptes Let's Encrypt (clés privées — NE PAS COMMITTER)
+nginx/certbot_etc/
+nginx/certbot_lib/
+nginx/certbot_logs/
+
+# Backups PostgreSQL (fichiers volumineux avec données utilisateurs)
+backups/
+backups/*.sql.gz
 
 # Logs
 *.log

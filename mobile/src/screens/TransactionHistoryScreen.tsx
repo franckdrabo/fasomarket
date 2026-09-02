@@ -9,12 +9,12 @@ import {
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../services/api';
 import { useAuthStore } from '../stores/authStore';
 import { TransactionData, STATUT_ESCROW_LABELS, STATUT_ESCROW_COLORS, MOYEN_PAIEMENT_LABELS } from '../types';
 import { getTimeAgo } from '../utils/date';
-import { FadeInView } from '../components/animations';
 import { colors, spacing, borderRadius, typography, shadows } from '../theme';
 
 interface Props {
@@ -143,7 +143,17 @@ export default function TransactionHistoryScreen({ onTransactionPress }: Props) 
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <LinearGradient
+      colors={['#FDDCB5', '#FFF0E0', '#FFF8F0']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0, y: 1 }}
+      style={styles.container}
+    >
+      {/* Decorative circles */}
+      <View style={styles.decorCircle1} />
+      <View style={styles.decorCircle2} />
+
+      <SafeAreaView style={{ flex: 1 }} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.screenTitle}>Mes transactions</Text>
@@ -221,13 +231,35 @@ export default function TransactionHistoryScreen({ onTransactionPress }: Props) 
         />
       )}
     </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+  },
+
+  // Decorative circles
+  decorCircle1: {
+    position: 'absolute',
+    top: -30,
+    right: -20,
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    backgroundColor: '#FF6B35',
+    opacity: 0.08,
+  },
+  decorCircle2: {
+    position: 'absolute',
+    bottom: 100,
+    left: -20,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: '#2ECC71',
+    opacity: 0.05,
   },
 
   // Header
@@ -308,6 +340,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
     ...shadows.sm,
   },
   cardRow: {

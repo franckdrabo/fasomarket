@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -48,7 +49,7 @@ export default function ChatScreen({ conversation, onBack }: Props) {
   const [otherUserTyping, setOtherUserTyping] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const flatListRef = useRef<FlatList>(null);
-  const typingTimeout = useRef<NodeJS.Timeout>();
+  const typingTimeout = useRef<NodeJS.Timeout | null>(null);
   const { user } = useAuthStore();
 
   const isOwn = (expediteurId: string) => expediteurId === user?.id;
@@ -80,41 +81,22 @@ export default function ChatScreen({ conversation, onBack }: Props) {
           if (event.conversationId === conversation.id) {
             setOtherUserTyping(event.isTyping);
             if (event.isTyping) {
-              clearTimeout(typingTimeout.current);
+              if (typingTimeout.current) clearTimeout(typingTimeout.current);
               typingTimeout.current = setTimeout(() => setOtherUserTyping(false), 3000);
             }
           }
         });
 
-        // Charger les messages existants
-        // En prod: const data = await api.messages.getByConversation(conversation.id);
-        const mockMessages: MessageData[] = [
-          {
-            id: 'm1', conversationId: conversation.id,
-            expediteurId: otherParticipant.id,
-            contenu: 'Bonjour ! Cet article est-il toujours disponible ?',
-            type: 'TEXTE', lu: true,
-            timestamp: new Date(Date.now() - 86400000).toISOString(),
-            expediteur: { id: otherParticipant.id, nom: otherParticipant.nom },
-          },
-          {
-            id: 'm2', conversationId: conversation.id,
-            expediteurId: user?.id || '',
-            contenu: 'Oui, tout à fait !',
-            type: 'TEXTE', lu: true,
-            timestamp: new Date(Date.now() - 82800000).toISOString(),
-            expediteur: { id: user?.id || '', nom: user?.nom || 'Moi' },
-          },
-          {
-            id: 'm3', conversationId: conversation.id,
-            expediteurId: otherParticipant.id,
-            contenu: `Parfait, je suis intéressé. Pouvez-vous me donner plus de détails ?`,
-            type: 'TEXTE', lu: true,
-            timestamp: new Date(Date.now() - 72000000).toISOString(),
-            expediteur: { id: otherParticipant.id, nom: otherParticipant.nom },
-          },
-        ];
-        setMessages(mockMessages);
+        // Charger les messages existants depuis le backend
+        try {
+          const data = await api.messages.getByConversation(conversation.id) as MessageData[];
+          const history = Array.isArray(data) ? data : [];
+          setMessages(history.length > 0 ? history : buildMockMessages());
+        } catch (error) {
+          // Backend injoignable → repli sur les messages de démo
+          console.warn('Chat: backend injoignable, messages de démo affichés');
+          setMessages(buildMockMessages());
+        }
       } catch (error) {
         console.error('Erreur init chat:', error);
       }
@@ -125,9 +107,39 @@ export default function ChatScreen({ conversation, onBack }: Props) {
     return () => {
       unsubscribeMessage?.();
       unsubscribeTyping?.();
-      clearTimeout(typingTimeout.current);
+      if (typingTimeout.current) clearTimeout(typingTimeout.current);
     };
   }, [conversation.id]);
+
+  // Messages de démo (affichés uniquement si le backend est injoignable ou sans historique)
+  function buildMockMessages(): MessageData[] {
+    return [
+      {
+        id: 'm1', conversationId: conversation.id,
+        expediteurId: otherParticipant.id,
+        contenu: 'Bonjour ! Cet article est-il toujours disponible ?',
+        type: 'TEXTE', lu: true,
+        timestamp: new Date(Date.now() - 86400000).toISOString(),
+        expediteur: { id: otherParticipant.id, nom: otherParticipant.nom },
+      },
+      {
+        id: 'm2', conversationId: conversation.id,
+        expediteurId: user?.id || '',
+        contenu: 'Oui, tout à fait !',
+        type: 'TEXTE', lu: true,
+        timestamp: new Date(Date.now() - 82800000).toISOString(),
+        expediteur: { id: user?.id || '', nom: user?.nom || 'Moi' },
+      },
+      {
+        id: 'm3', conversationId: conversation.id,
+        expediteurId: otherParticipant.id,
+        contenu: 'Parfait, je suis intéressé. Pouvez-vous me donner plus de détails ?',
+        type: 'TEXTE', lu: true,
+        timestamp: new Date(Date.now() - 72000000).toISOString(),
+        expediteur: { id: otherParticipant.id, nom: otherParticipant.nom },
+      },
+    ];
+  }
 
   // Envoyer un message texte
   function handleSendText() {
@@ -167,21 +179,14 @@ export default function ChatScreen({ conversation, onBack }: Props) {
     sendTyping(conversation.id, text.length > 0);
   }
 
-  // Accepter une offre
+  // Accepter une offre — achat 100% P2P : le paiement ne passe plus par
+  // l'application. L'acheteur paie le vendeur directement par Mobile Money
+  // sur le numéro que le vendeur communique dans la conversation.
   function handleAcceptOffer(message: MessageData) {
     Alert.alert(
-      'Accepter l\'offre',
-      `Initier le paiement de ${message.offrePrix?.toLocaleString('fr-FR')} FCFA ?`,
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Oui, payer',
-          onPress: () => {
-            // Navigation vers le paiement
-            Alert.alert('✅', 'Paiement initié ! (à implémenter)');
-          },
-        },
-      ],
+      'Offre acceptée 🎉',
+      `Payez ${message.offrePrix?.toLocaleString('fr-FR')} FCFA directement au vendeur par Mobile Money.\n\nDemandez-lui son numéro (Orange Money, Moov Money ou Wave) dans la conversation, puis confirmez ensemble la transaction.`,  
+      [{ text: 'Compris' }],
     );
   }
 
@@ -205,7 +210,14 @@ export default function ChatScreen({ conversation, onBack }: Props) {
       <View style={styles.chatHeader}>
         <View style={styles.chatHeaderContent}>
           <View style={styles.chatHeaderAvatar}>
-            <Ionicons name="person" size={20} color={colors.textSecondary} />
+            {otherParticipant.avatar ? (
+              <Image
+                source={{ uri: otherParticipant.avatar }}
+                style={styles.avatarImage}
+              />
+            ) : (
+              <Ionicons name="person" size={20} color={colors.textSecondary} />
+            )}
           </View>
           <View style={styles.chatHeaderInfo}>
             <Text style={styles.chatHeaderName}>{otherParticipant.nom}</Text>
@@ -232,7 +244,7 @@ export default function ChatScreen({ conversation, onBack }: Props) {
         <View style={styles.headerInfo}>
           <Text style={styles.headerName}>{otherParticipant.nom}</Text>
           {otherUserTyping && (
-            <Text style={styles.typingText}>En train d'écrire...</Text>
+            <Text style={styles.typingText}>En train d&apos;écrire...</Text>
           )}
         </View>
         <TouchableOpacity style={styles.headerAction}>
@@ -322,7 +334,15 @@ export default function ChatScreen({ conversation, onBack }: Props) {
         <View style={styles.articleBar}>
           <View style={styles.articleBarContent}>
             <View style={styles.articleBarImage}>
-              <Ionicons name="pricetag" size={16} color={colors.primary} />
+              {conversation.article.photos && conversation.article.photos.length > 0 ? (
+                <Image
+                  source={{ uri: conversation.article.photos[0] }}
+                  style={styles.articleImage}
+                  resizeMode="cover"
+                />
+              ) : (
+                <Ionicons name="pricetag" size={16} color={colors.primary} />
+              )}
             </View>
             <View style={styles.articleBarInfo}>
               <Text style={styles.articleBarTitle} numberOfLines={1}>
@@ -413,6 +433,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceVariant,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
   },
   chatHeaderInfo: {
     flex: 1,
@@ -558,6 +583,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceVariant,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  articleImage: {
+    width: '100%',
+    height: '100%',
   },
   articleBarInfo: {
     flex: 1,

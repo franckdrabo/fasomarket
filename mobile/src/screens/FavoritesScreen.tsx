@@ -9,10 +9,11 @@ import {
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import ArticleCard, { ArticleCardData } from '../components/ArticleCard';
+import EmptyState from '../components/EmptyState';
 import { api } from '../services/api';
-import { FadeInView } from '../components/animations';
 import { colors, spacing, borderRadius, typography, shadows } from '../theme';
 
 interface Props {
@@ -55,7 +56,17 @@ export default function FavoritesScreen({ onBack, onArticlePress }: Props) {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <LinearGradient
+      colors={['#FDDCB5', '#FFF0E0', '#FFF8F0']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0, y: 1 }}
+      style={styles.container}
+    >
+      {/* Decorative circles */}
+      <View style={styles.decorCircle1} />
+      <View style={styles.decorCircle2} />
+
+      <SafeAreaView style={{ flex: 1 }} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={onBack} style={styles.backButton}>
@@ -90,16 +101,11 @@ export default function FavoritesScreen({ onBack, onArticlePress }: Props) {
           ]}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
-            <View style={styles.emptyState}>
-              <View style={styles.emptyIcon}>
-                <Ionicons name="heart-outline" size={48} color={colors.disabled} />
-              </View>
-              <Text style={styles.emptyTitle}>Aucun favori</Text>
-              <Text style={styles.emptySubtitle}>
-                Ajoutez des articles à vos favoris en appuyant sur le cœur
-                pour les retrouver facilement plus tard.
-              </Text>
-            </View>
+            <EmptyState
+              icon="heart-outline"
+              title="Aucun favori"
+              description="Ajoutez des articles à vos favoris en appuyant sur le cœur pour les retrouver facilement plus tard."
+            />
           }
           refreshControl={
             <RefreshControl
@@ -112,13 +118,35 @@ export default function FavoritesScreen({ onBack, onArticlePress }: Props) {
         />
       )}
     </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+  },
+
+  // Decorative circles
+  decorCircle1: {
+    position: 'absolute',
+    top: -30,
+    left: -20,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: '#FF6B35',
+    opacity: 0.08,
+  },
+  decorCircle2: {
+    position: 'absolute',
+    bottom: 100,
+    right: -15,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#2ECC71',
+    opacity: 0.05,
   },
   header: {
     flexDirection: 'row',
@@ -161,28 +189,5 @@ const styles = StyleSheet.create({
   listEmpty: {
     flex: 1,
     justifyContent: 'center',
-  },
-  emptyState: {
-    alignItems: 'center',
-    paddingHorizontal: spacing.xl,
-  },
-  emptyIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.surfaceVariant,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.lg,
-  },
-  emptyTitle: {
-    ...typography.h3,
-    marginBottom: spacing.sm,
-  },
-  emptySubtitle: {
-    ...typography.body,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
   },
 });

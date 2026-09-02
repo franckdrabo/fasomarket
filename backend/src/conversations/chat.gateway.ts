@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import {
   WebSocketGateway,
   WebSocketServer,
@@ -13,13 +14,18 @@ import { JwtService } from '@nestjs/jwt';
 import { NotificationsService } from '../notifications/notifications.service';
 
 @WebSocketGateway({
-  cors: { origin: '*' },
+  cors: {
+    origin: process.env.NODE_ENV === 'production'
+      ? (process.env.CORS_ORIGIN || 'https://api.bazario.com').split(',')
+      : '*',
+  },
   namespace: '/chat',
 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
+  private readonly logger = new Logger(ChatGateway.name);
   private userSockets = new Map<string, string[]>(); // userId -> socketIds[]
 
   constructor(
@@ -57,7 +63,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       });
 
       client.data.userId = userId;
-      console.log(`🔌 User ${userId} connected (socket: ${client.id})`);
+      this.logger.log(`User ${userId} connected (socket: ${client.id})`);
     } catch {
       client.disconnect();
     }
@@ -73,7 +79,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       } else {
         this.userSockets.set(userId, updated);
       }
-      console.log(`🔌 User ${userId} disconnected`);
+      this.logger.log(`User ${userId} disconnected`);
     }
   }
 

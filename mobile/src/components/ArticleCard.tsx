@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  Image,
   StyleSheet,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
   useSharedValue,
@@ -13,6 +13,7 @@ import Animated, {
   withSequence,
 } from 'react-native-reanimated';
 import { AnimatedPressable } from './animations';
+import { getTimeAgo } from '../utils/date';
 import { colors, spacing, borderRadius, typography, shadows } from '../theme';
 
 export interface ArticleCardData {
@@ -31,6 +32,11 @@ export interface ArticleCardData {
     avatar?: string;
     ville?: string;
     noteMoyenne?: number;
+    telephone?: string;
+  };
+  coords?: {
+    latitude: number;
+    longitude: number;
   };
   favoris?: boolean;
 }
@@ -39,6 +45,22 @@ interface Props {
   article: ArticleCardData;
   onPress: (article: ArticleCardData) => void;
   onFavorite?: (article: ArticleCardData) => void;
+}
+
+const CATEGORY_STYLES: Record<string, { color: string; icon: string }> = {
+  VETEMENTS: { color: '#E91E63', icon: 'shirt' },
+  CHAUSSURES: { color: '#9C27B0', icon: 'footsteps' },
+  ELECTRONIQUE: { color: '#2196F3', icon: 'laptop' },
+  MAISON: { color: '#4CAF50', icon: 'home' },
+  AUTRES: { color: '#FF9800', icon: 'apps' },
+};
+
+function getPlaceholderColor(categorie: string): string {
+  return CATEGORY_STYLES[categorie]?.color || '#9E9E9E';
+}
+
+function getCategoryIcon(categorie: string): string {
+  return CATEGORY_STYLES[categorie]?.icon || 'image-outline';
 }
 
 export default function ArticleCard({ article, onPress, onFavorite }: Props) {
@@ -86,13 +108,15 @@ export default function ArticleCard({ article, onPress, onFavorite }: Props) {
         <View style={styles.imageContainer}>
           {photoUrl ? (
             <Image
-              source={{ uri: photoUrl }}
+              source={photoUrl}
               style={styles.image}
-              resizeMode="cover"
+              contentFit="cover"
+              transition={300}
+              cachePolicy="memory-disk"
             />
           ) : (
-            <View style={styles.imagePlaceholder}>
-              <Ionicons name="image-outline" size={40} color={colors.disabled} />
+            <View style={[styles.imagePlaceholder, { backgroundColor: getPlaceholderColor(article.categorie) }]}>
+              <Ionicons name={getCategoryIcon(article.categorie) as any} size={48} color="rgba(255,255,255,0.6)" />
             </View>
           )}
 
@@ -137,7 +161,7 @@ export default function ArticleCard({ article, onPress, onFavorite }: Props) {
             <View style={styles.metaItem}>
               <Ionicons name="person-outline" size={12} color={colors.textSecondary} />
               <Text style={styles.metaText}>{article.vendeur.nom}</Text>
-              {article.vendeur.noteMoyenne && article.vendeur.noteMoyenne >= 4.5 && (
+              {article.vendeur.noteMoyenne != null && article.vendeur.noteMoyenne >= 4.5 && (
                 <Ionicons name="shield-checkmark" size={12} color={colors.verified} />
               )}
             </View>
@@ -148,26 +172,14 @@ export default function ArticleCard({ article, onPress, onFavorite }: Props) {
   );
 }
 
-function getTimeAgo(dateString: string): string {
-  const now = new Date();
-  const date = new Date(dateString);
-  const diffMs = now.getTime() - date.getTime();
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  if (diffHours < 1) return "À l'instant";
-  if (diffHours < 24) return `Il y a ${diffHours}h`;
-  const diffDays = Math.floor(diffHours / 24);
-  if (diffDays < 7) return `Il y a ${diffDays}j`;
-  if (diffDays < 30) return `Il y a ${Math.floor(diffDays / 7)} sem`;
-  return `Il y a ${Math.floor(diffDays / 30)} mois`;
-}
-
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
     marginBottom: spacing.md,
     overflow: 'hidden',
-    ...shadows.md,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   imageContainer: {
     position: 'relative',

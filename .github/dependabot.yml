@@ -1,0 +1,79 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# Bazario — Dependabot (Mises à jour automatiques des dépendances)
+# ═══════════════════════════════════════════════════════════════════════════════
+# Documentation : https://docs.github.com/en/code-security/dependabot
+# ═══════════════════════════════════════════════════════════════════════════════
+
+version: 2
+updates:
+  # ─── Backend (npm) ──────────────────────────────────────────────────────
+  - package-ecosystem: 'npm'
+    directory: '/backend'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'Africa/Abidjan'
+    versioning-strategy: increase
+    open-pull-requests-limit: 10
+    labels:
+      - 'dependencies'
+      - 'backend'
+    commit-message:
+      prefix: '📦'
+      include: 'scope'
+    groups:
+      nestjs:
+        patterns:
+          - '@nestjs/*'
+        update-types:
+          - 'minor'
+          - 'patch'
+      prisma:
+        patterns:
+          - 'prisma'
+          - '@prisma/*'
+      testing:
+        patterns:
+          - 'jest'
+          - '@types/jest'
+          - 'ts-jest'
+
+  # ─── Mobile (npm / Expo) ────────────────────────────────────────────────
+  - package-ecosystem: 'npm'
+    directory: '/mobile'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'Africa/Abidjan'
+    versioning-strategy: increase
+    open-pull-requests-limit: 10
+    labels:
+      - 'dependencies'
+      - 'mobile'
+    commit-message:
+      prefix: '📱'
+      include: 'scope'
+    ignore:
+      # Expo SDK : ne pas mettre à jour automatiquement (maj manuelle)
+      - dependency-name: 'expo'
+      - dependency-name: 'expo-*'
+      # React Native versions : gérées manuellement
+      - dependency-name: 'react-native'
+      - dependency-name: 'react-native-*'
+
+  # ─── GitHub Actions (workflows) ─────────────────────────────────────────
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'Africa/Abidjan'
+    labels:
+      - 'dependencies'
+      - 'ci-cd'
+    commit-message:
+      prefix: '🔧'
+      include: 'scope'

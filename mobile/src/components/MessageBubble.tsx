@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, borderRadius, typography, shadows } from '../theme';
 
@@ -90,7 +90,14 @@ export default function MessageBubble({ message, isOwn, onAcceptOffer, onDecline
     <View style={[styles.bubbleContainer, isOwn ? styles.bubbleOwn : styles.bubbleOther]}>
       {!isOwn && (
         <View style={styles.avatar}>
-          <Ionicons name="person" size={14} color={colors.textSecondary} />
+          {message.expediteur.avatar ? (
+            <Image
+              source={{ uri: message.expediteur.avatar }}
+              style={styles.avatarImage}
+            />
+          ) : (
+            <Ionicons name="person" size={14} color={colors.textSecondary} />
+          )}
         </View>
       )}
       <View style={[styles.bubble, isOwn ? styles.bubbleOwnInner : styles.bubbleOtherInner]}>
@@ -136,6 +143,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceVariant,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
   },
   bubble: {
     maxWidth: '75%',

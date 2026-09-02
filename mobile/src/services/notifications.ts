@@ -1,7 +1,6 @@
 import { Platform } from 'react-native';
-import * as ExpoNotifications from 'expo-notifications';
-import * as Device from 'expo-device';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { api } from './api';
 
 // ─── Types ─────────────────────────────────────────────────────────────────
@@ -16,27 +15,75 @@ export interface NotificationData {
 
 export type NotificationNavigationHandler = (data: NotificationData) => void;
 
-// ─── Configuration ─────────────────────────────────────────────────────────
+// ─── Lazy loaders ───────────────────────────────────────────────────────────
+// Les imports statiques d'expo-notifications et expo-device déclenchent
+// un warning dans Expo Go (SDK 53+). On les importe dynamiquement pour
+// ne charger le module que quand on est sûr de ne pas être dans Expo Go.
 
-// Configuration du comportement des notifications en premier plan
-ExpoNotifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+let _ExpoNotifications: any = null;
+let _Device: any = null;
+let _loaded = false;
+
+async function ensureLoaded() {
+  if (_loaded) return;
+  _loaded = true;
+
+  // Ne rien charger si on est dans Expo Go (SDK 53+ ne supporte pas les push)
+  if (Constants.executionEnvironment === ExecutionEnvironment.StoreClient) {
+    return;
+  }
+
+  try {
+    _ExpoNotifications = await import('expo-notifications');
+  } catch {
+    // Module non disponible
+  }
+
+  try {
+    _Device = await import('expo-device');
+  } catch {
+    // Module non disponible
+  }
+}
+
+function getExpo(): any {
+  return _ExpoNotifications;
+}
+
+function getDevice(): any {
+  return _Device;
+}
+
+// ─── Configuration ──────────────────────────────────────────────────────────
+// Appelée une fois pour configurer le handler de notifications (avant tout
+// appel à registerForPushNotifications ou onNotificationReceived).
+
+export async function initNotifications() {
+  await ensureLoaded();
+  const Expo = getExpo();
+  if (!Expo) return;
+
+  Expo.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+}
 
 // ─── Stockage local ────────────────────────────────────────────────────────
 
 const PUSH_TOKEN_KEY = '@bazario/pushToken';
-const NOTIFICATION_OPENED_KEY = '@bazario/notificationOpened';
 
 async function getStoredPushToken(): Promise<string | null> {
   return AsyncStorage.getItem(PUSH_TOKEN_KEY);
 }
+
+// Exporté pour que authStore puisse l'envoyer lors du login OTP
+export { getStoredPushToken };
 
 async function storePushToken(token: string) {
   await AsyncStorage.setItem(PUSH_TOKEN_KEY, token);
@@ -50,44 +97,42 @@ async function clearPushToken() {
 
 async function setupNotificationChannels() {
   if (Platform.OS !== 'android') return;
+  const Expo = getExpo();
+  if (!Expo) return;
 
-  // Channel général
-  await ExpoNotifications.setNotificationChannelAsync('bazario_default', {
+  await Expo.setNotificationChannelAsync('bazario_default', {
     name: 'Notifications générales',
     description: 'Notifications importantes de Bazario',
-    importance: ExpoNotifications.AndroidImportance.HIGH,
+    importance: Expo.AndroidImportance.HIGH,
     vibrationPattern: [0, 100, 100, 100],
     lightColor: '#FF6B35',
     sound: 'default',
   });
 
-  // Channel messages
-  await ExpoNotifications.setNotificationChannelAsync('bazario_messages', {
+  await Expo.setNotificationChannelAsync('bazario_messages', {
     name: 'Messages',
     description: 'Nouveaux messages de vos conversations',
-    importance: ExpoNotifications.AndroidImportance.HIGH,
+    importance: Expo.AndroidImportance.HIGH,
     vibrationPattern: [0, 50, 100, 50],
     lightColor: '#2ECC71',
     sound: 'default',
     enableVibrate: true,
   });
 
-  // Channel transactions
-  await ExpoNotifications.setNotificationChannelAsync('bazario_transactions', {
+  await Expo.setNotificationChannelAsync('bazario_transactions', {
     name: 'Transactions',
     description: 'Paiements, confirmations et litiges',
-    importance: ExpoNotifications.AndroidImportance.HIGH,
+    importance: Expo.AndroidImportance.HIGH,
     vibrationPattern: [0, 100, 200, 100],
     lightColor: '#3498DB',
     sound: 'default',
     enableVibrate: true,
   });
 
-  // Channel promotions
-  await ExpoNotifications.setNotificationChannelAsync('bazario_promotions', {
+  await Expo.setNotificationChannelAsync('bazario_promotions', {
     name: 'Promotions',
     description: 'Offres et recommandations',
-    importance: ExpoNotifications.AndroidImportance.LOW,
+    importance: Expo.AndroidImportance.LOW,
     sound: null,
     enableVibrate: false,
   });
@@ -96,16 +141,20 @@ async function setupNotificationChannels() {
 // ─── Permission ────────────────────────────────────────────────────────────
 
 async function requestPermission(): Promise<boolean> {
-  if (!Device.isDevice) {
+  const Device = getDevice();
+  if (Device && !Device.isDevice) {
     console.log('⚠️ Les notifications push ne sont pas supportées sur simulateur');
     return false;
   }
 
-  const { status: existingStatus } = await ExpoNotifications.getPermissionsAsync();
+  const Expo = getExpo();
+  if (!Expo) return false;
+
+  const { status: existingStatus } = await Expo.getPermissionsAsync();
   let finalStatus = existingStatus;
 
   if (existingStatus !== 'granted') {
-    const { status } = await ExpoNotifications.requestPermissionsAsync();
+    const { status } = await Expo.requestPermissionsAsync();
     finalStatus = status;
   }
 
@@ -120,13 +169,24 @@ async function requestPermission(): Promise<boolean> {
 // ─── Récupération du token Expo ───────────────────────────────────────────
 
 async function getExpoPushToken(): Promise<string | null> {
+  const Expo = getExpo();
+  if (!Expo) return null;
+
   try {
-    const tokenData = await ExpoNotifications.getExpoPushTokenAsync({
-      projectId: undefined, // Sera automatiquement détecté depuis app.json
-    });
+    // Lire le projectId depuis différentes sources possibles du manifest
+    const projectId =
+      Constants.expoConfig?.extra?.eas?.projectId ??
+      (Constants.expoConfig as any)?.projectId ??
+      Constants.expoConfig?.updates?.url?.match(/u\.expo\.dev\/([a-f0-9-]+)/i)?.[1];
+
+    if (!projectId) {
+      console.warn('⚠️ projectId non trouvé - les notifications push ne fonctionneront pas');
+      return null;
+    }
+
+    const tokenData = await Expo.getExpoPushTokenAsync({ projectId });
     return tokenData.data;
-  } catch (error) {
-    console.error('❌ Erreur récupération token Expo:', error);
+  } catch {
     return null;
   }
 }
@@ -134,14 +194,18 @@ async function getExpoPushToken(): Promise<string | null> {
 // ─── Enregistrement du token ───────────────────────────────────────────────
 
 export async function registerForPushNotifications(): Promise<string | null> {
+  await ensureLoaded();
+
+  const Expo = getExpo();
+  if (!Expo) return null; // Silencieux — Expo Go ou module non dispo
+
   // Vérifier si déjà enregistré
   const existing = await getStoredPushToken();
   if (existing) {
-    // Ré-enregistrer au cas où le token aurait changé côté backend
     try {
       await api.notifications.registerToken(existing);
     } catch {
-      // Si erreur, on continue et on réessaye avec un nouveau token
+      // Si erreur, on continue
     }
     return existing;
   }
@@ -155,10 +219,7 @@ export async function registerForPushNotifications(): Promise<string | null> {
 
   // Récupérer le token Expo
   const token = await getExpoPushToken();
-  if (!token) {
-    console.log('❌ Impossible de récupérer le token push');
-    return null;
-  }
+  if (!token) return null;
 
   // Enregistrer sur le backend
   try {
@@ -168,7 +229,6 @@ export async function registerForPushNotifications(): Promise<string | null> {
     return token;
   } catch (error) {
     console.error('❌ Erreur enregistrement token sur le backend:', error);
-    // Stocker quand même pour réessayer plus tard
     await storePushToken(token);
     return token;
   }
@@ -198,9 +258,14 @@ export function setNotificationNavigationHandler(handler: NotificationNavigation
 
 // Gérer la notification reçue en premier plan
 export function onNotificationReceived(
-  callback: (notification: ExpoNotifications.Notification) => void,
+  callback: (notification: any) => void,
 ) {
-  const subscription = ExpoNotifications.addNotificationReceivedListener((notification) => {
+  const Expo = getExpo();
+  if (!Expo) {
+    return { remove: () => {} };
+  }
+
+  const subscription = Expo.addNotificationReceivedListener((notification: any) => {
     console.log('📩 Notification reçue (premier plan):', notification.request.content.data);
     callback(notification);
   });
@@ -208,14 +273,16 @@ export function onNotificationReceived(
 }
 
 // Gérer le tap sur une notification
-export function onNotificationTapped(
-  callback: (data: NotificationData) => void,
-) {
-  const subscription = ExpoNotifications.addNotificationResponseReceivedListener((response) => {
+export function onNotificationTapped(callback: (data: NotificationData) => void) {
+  const Expo = getExpo();
+  if (!Expo) {
+    return { remove: () => {} };
+  }
+
+  const subscription = Expo.addNotificationResponseReceivedListener((response: any) => {
     const data = response.notification.request.content.data as NotificationData;
     console.log('👆 Notification tapée:', data);
 
-    // Naviguer vers l'écran approprié
     if (navigationHandler) {
       navigationHandler(data);
     }
@@ -227,11 +294,18 @@ export function onNotificationTapped(
 
 // Vérifier si l'app a été ouverte via une notification (au démarrage)
 export async function getInitialNotification(): Promise<NotificationData | null> {
-  const response = await ExpoNotifications.getLastNotificationResponseAsync();
-  if (response) {
-    const data = response.notification.request.content.data as NotificationData;
-    console.log('🔓 App ouverte via notification:', data);
-    return data;
+  const Expo = getExpo();
+  if (!Expo) return null;
+
+  try {
+    const response = await Expo.getLastNotificationResponseAsync();
+    if (response) {
+      const data = response.notification.request.content.data as NotificationData;
+      console.log('🔓 App ouverte via notification:', data);
+      return data;
+    }
+  } catch {
+    // Module non disponible
   }
   return null;
 }

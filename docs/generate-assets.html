@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Générateur d'assets Bazario</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      min-height: 100vh;
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 32px 24px; }
+    h1 { font-size: 28px; font-weight: 800; color: #FF6B35; margin-bottom: 8px; }
+    .subtitle { color: #7F8C8D; margin-bottom: 32px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px; }
+    .card {
+      background: #16213e;
+      border-radius: 16px;
+      padding: 24px;
+      border: 1px solid #2a2a4a;
+    }
+    .card h2 { font-size: 18px; color: #FF6B35; margin-bottom: 16px; }
+    .card p { font-size: 13px; color: #7F8C8D; margin-bottom: 12px; }
+    .spec { font-size: 12px; color: #3498DB; background: #0f3460; padding: 4px 10px; border-radius: 6px; display: inline-block; margin-bottom: 12px; }
+    canvas { display: block; margin: 12px 0; border-radius: 8px; border: 1px solid #2a2a4a; max-width: 100%; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 10px 20px;
+      border: none; border-radius: 8px;
+      font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-primary { background: #FF6B35; color: #fff; }
+    .btn-primary:hover { background: #E55A2B; }
+    .btn-secondary { background: #2a2a4a; color: #e0e0e0; }
+    .btn-secondary:hover { background: #3a3a5a; }
+    .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    .icon-preview { display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap; margin: 12px 0; }
+    .icon-size { text-align: center; }
+    .icon-size span { display: block; font-size: 11px; color: #7F8C8D; margin-top: 4px; }
+    .upload-zone {
+      border: 2px dashed #FF6B35;
+      border-radius: 12px;
+      padding: 32px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 16px;
+    }
+    .upload-zone:hover { background: rgba(255, 107, 53, 0.1); }
+    .upload-zone input { display: none; }
+    .checklist { list-style: none; }
+    .checklist li { padding: 6px 0; font-size: 13px; }
+    .checklist li::before { content: '✅ '; }
+    .full-width { grid-column: 1 / -1; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🛒 Générateur d'assets — Bazario</h1>
+    <p class="subtitle">Outil de génération des graphiques pour Google Play Store et Apple App Store</p>
+
+    <!-- Upload zone -->
+    <div class="card full-width" style="margin-bottom:24px;">
+      <h2>📁 Image source</h2>
+      <p>Chargez votre icône 1024×1024 pour générer toutes les tailles.</p>
+      <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+        <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp" onchange="handleUpload(event)">
+        <p style="font-size:32px; margin-bottom:8px;">📤</p>
+        <p style="color:#FF6B35; font-weight:600;">Cliquez ou glissez une image ici</p>
+        <p>PNG recommandé, 1024×1024px</p>
+      </div>
+      <p id="uploadStatus" style="color:#2ECC71; font-weight:600;"></p>
+    </div>
+
+    <div class="grid">
+
+      <!-- Feature Graphic Google Play -->
+      <div class="card full-width">
+        <h2>🖼️ Feature Graphic — Google Play Store</h2>
+        <span class="spec">1024 × 500 px · PNG · Max 1 MB</span>
+        <p>Bannière affichée en haut de la fiche Google Play. Doit être impactante et lisible.</p>
+        <canvas id="featureCanvas" width="1024" height="500"></canvas>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="downloadFeature()">⬇ Télécharger Feature Graphic</button>
+          <button class="btn btn-secondary" onclick="generateFeature()">🔄 Régénérer</button>
+        </div>
+      </div>
+
+      <!-- Icon Sizes -->
+      <div class="card full-width">
+        <h2>📱 Icônes — Toutes tailles requises</h2>
+        <span class="spec">Générées depuis votre image source 1024×1024</span>
+        <p>Cliquez sur chaque taille pour la télécharger individuellement.</p>
+        <div class="icon-preview" id="iconPreview"></div>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="downloadAllIcons()">⬇ Télécharger toutes les icônes</button>
+        </div>
+      </div>
+
+      <!-- Screenshot Guidelines -->
+      <div class="card full-width">
+        <h2>📸 Screenshots — Guidelines</h2>
+        <p>Les screenshots doivent montrer l'app en conditions réelles. Voici les tailles requises :</p>
+
+        <div style="margin: 16px 0;">
+          <h3 style="color:#3498DB; font-size:14px; margin-bottom:8px;">🍎 Apple App Store</h3>
+          <table style="width:100%; font-size:13px; border-collapse:collapse;">
+            <tr style="border-bottom:1px solid #2a2a4a;">
+              <td style="padding:8px; color:#7F8C8D;">iPhone 6.9" (16 Pro Max)</td>
+              <td style="padding:8px;">1320 × 2868 px</td>
+              <td style="padding:8px;"><span class="spec">Obligatoire</span></td>
+            </tr>
+            <tr style="border-bottom:1px solid #2a2a4a;">
+              <td style="padding:8px; color:#7F8C8D;">iPhone 6.7" (15 Pro Max)</td>
+              <td style="padding:8px;">1290 × 2796 px</td>
+              <td style="padding:8px;"><span class="spec">Recommandé</span></td>
+            </tr>
+            <tr style="border-bottom:1px solid #2a2a4a;">
+              <td style="padding:8px; color:#7F8C8D;">iPhone 6.5" (14 Plus)</td>
+              <td style="padding:8px;">1242 × 2688 px</td>
+              <td style="padding:8px;">Accepté</td>
+            </tr>
+            <tr style="border-bottom:1px solid #2a2a4a;">
+              <td style="padding:8px; color:#7F8C8D;">iPad 12.9"</td>
+              <td style="padding:8px;">2048 × 2732 px</td>
+              <td style="padding:8px;">Optionnel (si iPad)</td>
+            </tr>
+          </table>
+        </div>
+
+        <div style="margin: 16px 0;">
+          <h3 style="color:#2ECC71; font-size:14px; margin-bottom:8px;">🤖 Google Play Store</h3>
+          <table style="width:100%; font-size:13px; border-collapse:collapse;">
+            <tr style="border-bottom:1px solid #2a2a4a;">
+              <td style="padding:8px; color:#7F8C8D;">Phone</td>
+              <td style="padding:8px;">1080 × 1920 px (min 320px, max 3840px)</td>
+              <td style="padding:8px;"><span class="spec">2 à 8 screenshots</span></td>
+            </tr>
+            <tr style="border-bottom:1px solid #2a2a4a;">
+              <td style="padding:8px; color:#7F8C8D;">Tablet 7"</td>
+              <td style="padding:8px;">1080 × 1920 px</td>
+              <td style="padding:8px;">Optionnel</td>
+            </tr>
+            <tr>
+              <td style="padding:8px; color:#7F8C8D;">Chromebook</td>
+              <td style="padding:8px;">1080 × 1920 px</td>
+              <td style="padding:8px;">Optionnel</td>
+            </tr>
+          </table>
+        </div>
+
+        <h3 style="color:#FF6B35; font-size:14px; margin:16px 0 8px;">📋 Screenshots recommandés pour Bazario</h3>
+        <ol style="padding-left:20px; font-size:13px;">
+          <li style="margin-bottom:6px;"><strong>Accueil</strong> — La page principale avec les annonces</li>
+          <li style="margin-bottom:6px;"><strong>Détail annonce</strong> — Photo, prix, description, vendeur</li>
+          <li style="margin-bottom:6px;"><strong>Messagerie</strong> — Conversation avec offre de prix</li>
+          <li style="margin-bottom:6px;"><strong>Créer une annonce</strong> — Formulaire de publication</li>
+          <li style="margin-bottom:6px;"><strong>Profil vendeur</strong> — Badge, note, nombre de ventes</li>
+          <li style="margin-bottom:6px;"><strong>Activation vendeur</strong> — Sélection opérateur Mobile Money</li>
+        </ol>
+
+        <div class="btn-group" style="margin-top:16px;">
+          <button class="btn btn-primary" onclick="generateScreenshotTemplate()">🖼️ Générer template screenshot</button>
+        </div>
+        <canvas id="screenshotCanvas" width="390" height="844" style="display:none; max-width:300px;"></canvas>
+      </div>
+
+      <!-- Checklist -->
+      <div class="card">
+        <h2>✅ Checklist Google Play</h2>
+        <ul class="checklist">
+          <li>Icône 512×512 PNG</li>
+          <li>Feature graphic 1024×500</li>
+          <li>2-8 screenshots phone (1080×1920)</li>
+          <li>Titre (max 30 car.)</li>
+          <li>Description courte (max 80 car.)</li>
+          <li>Description complète (max 4000 car.)</li>
+          <li>Politique de confidentialité URL</li>
+          <li>Catégorie : Shopping</li>
+          <li>Contenu de l'app : tous les ages</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>✅ Checklist App Store</h2>
+        <ul class="checklist">
+          <li>Icône 1024×1024 PNG (sans alpha)</li>
+          <li>Screenshots iPhone 6.9"</li>
+          <li>Screenshots iPhone 6.7"</li>
+          <li>Screenshots iPhone 6.5" (min)</li>
+          <li>Titre (max 30 car.)</li>
+          <li>Sous-titre (max 30 car.)</li>
+          <li>Description (max 4000 car.)</li>
+          <li>Keywords (max 100 car.)</li>
+          <li>Politique de confidentialité URL</li>
+          <li>Catégorie : Shopping</li>
+          <li>Support URL</li>
+          <li>Marketing URL (optionnel)</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let sourceImage = null;
+
+    // ─── Upload ────────────────────────────────────────────────────────
+    function handleUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          sourceImage = img;
+          document.getElementById('uploadStatus').textContent = `✅ ${file.name} chargé (${img.width}×${img.height})`;
+          generateFeature();
+          generateIcons();
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Drag & drop
+    const zone = document.getElementById('uploadZone');
+    zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.style.background = 'rgba(255,107,53,0.15)'; });
+    zone.addEventListener('dragleave', () => { zone.style.background = ''; });
+    zone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      zone.style.background = '';
+      const file = e.dataTransfer.files[0];
+      if (file) {
+        document.getElementById('fileInput').files = e.dataTransfer.files;
+        handleUpload({ target: { files: [file] } });
+      }
+    });
+
+    // ─── Feature Graphic (1024×500) ───────────────────────────────────
+    function generateFeature() {
+      const canvas = document.getElementById('featureCanvas');
+      const ctx = canvas.getContext('2d');
+      const W = 1024, H = 500;
+
+      // Background gradient
+      const grad = ctx.createLinearGradient(0, 0, W, H);
+      grad.addColorStop(0, '#FF6B35');
+      grad.addColorStop(0.5, '#E55A2B');
+      grad.addColorStop(1, '#D35400');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
+
+      // Decorative circles
+      ctx.globalAlpha = 0.1;
+      ctx.fillStyle = '#FFFFFF';
+      ctx.beginPath(); ctx.arc(850, 100, 200, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(150, 400, 150, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(600, 450, 100, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = 1;
+
+      // Left side: icon + text
+      if (sourceImage) {
+        // Draw icon with rounded corners
+        const iconSize = 140;
+        const iconX = 80, iconY = (H - iconSize) / 2;
+        ctx.save();
+        roundedRect(ctx, iconX, iconY, iconSize, iconSize, 28);
+        ctx.clip();
+        ctx.drawImage(sourceImage, iconX, iconY, iconSize, iconSize);
+        ctx.restore();
+
+        // White background behind icon for visibility
+        ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+        ctx.lineWidth = 3;
+        roundedRect(ctx, iconX, iconY, iconSize, iconSize, 28);
+        ctx.stroke();
+      }
+
+      // App name
+      ctx.fillStyle = '#FFFFFF';
+      ctx.font = 'bold 56px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+      ctx.textBaseline = 'middle';
+      const textX = sourceImage ? 260 : 80;
+      ctx.fillText('Bazario', textX, H / 2 - 40);
+
+      // Tagline
+      ctx.font = '24px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.fillText('Achetez et vendez en toute confiance', textX, H / 2 + 20);
+
+      // Sub-tagline
+      ctx.font = '18px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+      ctx.fillStyle = 'rgba(255,255,255,0.7)';
+      ctx.fillText('Orange Money · Moov Money · Wave', textX, H / 2 + 55);
+
+      // Right side decorative elements
+      ctx.globalAlpha = 0.15;
+      ctx.fillStyle = '#FFFFFF';
+      // Shopping basket icon (simplified)
+      const bx = 820, by = 180;
+      ctx.beginPath();
+      ctx.moveTo(bx - 60, by);
+      ctx.lineTo(bx + 60, by);
+      ctx.lineTo(bx + 50, by + 80);
+      ctx.lineTo(bx - 50, by + 80);
+      ctx.closePath();
+      ctx.fill();
+      ctx.lineWidth = 8;
+      ctx.strokeStyle = '#FFFFFF';
+      ctx.beginPath();
+      ctx.arc(bx, by - 20, 40, Math.PI, 0);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+
+    function roundedRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+    }
+
+    function downloadFeature() {
+      const canvas = document.getElementById('featureCanvas');
+      const link = document.createElement('a');
+      link.download = 'bazario-feature-graphic-1024x500.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    // ─── Icon Sizes ────────────────────────────────────────────────────
+    const ICON_SIZES = [
+      { name: 'icon-1024', size: 1024, platform: 'iOS App Store' },
+      { name: 'icon-512', size: 512, platform: 'Google Play Store' },
+      { name: 'icon-192', size: 192, platform: 'Android xxxhdpi' },
+      { name: 'icon-144', size: 144, platform: 'Android xxhdpi' },
+      { name: 'icon-96', size: 96, platform: 'Android xhdpi' },
+      { name: 'icon-72', size: 72, platform: 'Android hdpi' },
+      { name: 'icon-48', size: 48, platform: 'Android mdpi' },
+      { name: 'icon-36', size: 36, platform: 'Android ldpi' },
+      { name: 'adaptive-fg', size: 432, platform: 'Android Adaptive FG' },
+    ];
+
+    function generateIcons() {
+      const preview = document.getElementById('iconPreview');
+      preview.innerHTML = '';
+
+      ICON_SIZES.forEach(({ name, size, platform }) => {
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+
+        if (sourceImage) {
+          ctx.drawImage(sourceImage, 0, 0, size, size);
+        } else {
+          // Placeholder
+          const grad = ctx.createLinearGradient(0, 0, size, size);
+          grad.addColorStop(0, '#FF6B35');
+          grad.addColorStop(1, '#E55A2B');
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, size, size);
+          ctx.fillStyle = '#fff';
+          ctx.font = `bold ${Math.round(size * 0.3)}px sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('B', size / 2, size / 2);
+        }
+
+        const div = document.createElement('div');
+        div.className = 'icon-size';
+        canvas.style.cursor = 'pointer';
+        canvas.title = `${name} (${size}×${size}) — ${platform}`;
+        canvas.onclick = () => {
+          const link = document.createElement('a');
+          link.download = `bazario-${name}-${size}x${size}.png`;
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+        };
+        div.appendChild(canvas);
+        const label = document.createElement('span');
+        label.textContent = `${size}px`;
+        div.appendChild(label);
+        preview.appendChild(div);
+      });
+    }
+
+    function downloadAllIcons() {
+      ICON_SIZES.forEach(({ name, size }, index) => {
+        setTimeout(() => {
+          const canvas = document.createElement('canvas');
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          if (sourceImage) ctx.drawImage(sourceImage, 0, 0, size, size);
+          const link = document.createElement('a');
+          link.download = `bazario-${name}-${size}x${size}.png`;
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+        }, index * 300);
+      });
+    }
+
+    // ─── Screenshot Template ───────────────────────────────────────────
+    function generateScreenshotTemplate() {
+      const canvas = document.getElementById('screenshotCanvas');
+      canvas.style.display = 'block';
+      const ctx = canvas.getContext('2d');
+      const W = 390, H = 844;
+
+      // Status bar
+      ctx.fillStyle = '#FF6B35';
+      ctx.fillRect(0, 0, W, 50);
+
+      // Status bar text
+      ctx.fillStyle = '#fff';
+      ctx.font = '14px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('9:41', W / 2, 34);
+
+      // Notch
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.roundRect(W / 2 - 60, 8, 120, 28, 14);
+      ctx.fill();
+
+      // App header
+      ctx.fillStyle = '#FF6B35';
+      ctx.fillRect(0, 50, W, 60);
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 20px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('🛒 Bazario', 20, 86);
+
+      // Content area
+      ctx.fillStyle = '#FFF8F0';
+      ctx.fillRect(0, 110, W, H - 110);
+
+      // Placeholder cards
+      for (let i = 0; i < 3; i++) {
+        const y = 130 + i * 170;
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.roundRect(16, y, W - 32, 150, 12);
+        ctx.fill();
+        ctx.strokeStyle = '#E8D5C4';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Image placeholder
+        ctx.fillStyle = '#FFF0E0';
+        ctx.beginPath();
+        ctx.roundRect(16, y, 140, 150, 12);
+        ctx.fill();
+
+        // Text placeholders
+        ctx.fillStyle = '#E8D5C4';
+        ctx.fillRect(170, y + 20, 180, 14);
+        ctx.fillRect(170, y + 44, 120, 10);
+        ctx.fillStyle = '#FF6B35';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('XX XXX FCFA', 170, y + 80);
+        ctx.fillStyle = '#E8D5C4';
+        ctx.fillRect(170, y + 100, 100, 10);
+        ctx.fillRect(170, y + 118, 80, 10);
+      }
+
+      // Home indicator
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.roundRect(W / 2 - 60, H - 20, 120, 5, 3);
+      ctx.fill();
+    }
+
+    // Generate on load
+    generateFeature();
+  </script>
+</body>
+</html>

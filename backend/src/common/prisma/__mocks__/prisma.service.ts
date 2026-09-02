@@ -13,6 +13,15 @@ export class MockPrismaService {
     return `${prefix}-${Date.now()}-${++this.idCounter}`;
   }
 
+  /**
+   * Proxy de l'extension `encrypted` (prisma.encrypted.user…).
+   * Les tests stockent les données en clair, donc l'extension ne
+   * transforme rien : on renvoie le même objet mock.
+   */
+  get encrypted() {
+    return this;
+  }
+
   resetStore() {
     this.store = {
       user: new Map(),
@@ -29,18 +38,20 @@ export class MockPrismaService {
   // ─── User ──────────────────────────────────────────────────────────────
 
   user = {
-    findUnique: async (args: { where: { id?: string; phone?: string } }) => {
+    findUnique: async (args: { where: { id?: string; phone?: string; emailHash?: string } }) => {
       const users = Array.from(this.store.user.values());
       if (args.where.id) return users.find((u) => u.id === args.where.id) || null;
       if (args.where.phone) return users.find((u) => u.phone === args.where.phone) || null;
+      if (args.where.emailHash) return users.find((u) => u.emailHash === args.where.emailHash) || null;
       return null;
     },
     findFirst: async (args: any) => {
       const users = Array.from(this.store.user.values());
       if (args?.where?.id) return users.find((u) => u.id === args.where.id) || null;
+      if (args?.where) return users.find((u) => this.matchWhere(u, args.where)) || null;
       return null;
     },
-    findMany: async (args?: any) => {
+    findMany: async (_args?: any) => {
       return Array.from(this.store.user.values());
     },
     create: async (args: { data: any }) => {
@@ -69,7 +80,7 @@ export class MockPrismaService {
       this.store.user.set(id, user);
       return user;
     },
-    count: async (args?: any) => {
+    count: async (_args?: any) => {
       return Array.from(this.store.user.values()).length;
     },
   };
@@ -188,11 +199,20 @@ export class MockPrismaService {
       this.store.article.set(args.where.id, updated);
       return updated;
     },
+    updateMany: async (args: { where: any; data: any }) => {
+      let count = 0;
+      this.store.article.forEach((article, id) => {
+        if (!this.matchWhere(article, args.where)) return;
+        this.store.article.set(id, { ...article, ...args.data, updatedAt: new Date() });
+        count++;
+      });
+      return { count };
+    },
     delete: async (args: { where: { id: string } }) => {
       this.store.article.delete(args.where.id);
       return { id: args.where.id };
     },
-    count: async (args?: any) => {
+    count: async (_args?: any) => {
       return Array.from(this.store.article.values()).length;
     },
   };
@@ -297,6 +317,13 @@ export class MockPrismaService {
       }
       return conv;
     },
+    count: async (args?: any) => {
+      let results = Array.from(this.store.conversation.values());
+      if (args?.where) {
+        results = results.filter((item) => this.matchWhere(item, args.where));
+      }
+      return results.length;
+    },
   };
 
   // ─── Message ───────────────────────────────────────────────────────────
@@ -325,31 +352,64 @@ export class MockPrismaService {
   // ─── Transaction ───────────────────────────────────────────────────────
 
   transaction = {
-    findUnique: async (args: { where: { id: string }; include?: any }) => {
-      const t = this.store.transaction.get(args.where.id) || null;
-      if (!t || !args.include) return t;
-      // Simuler les includes
+    resolveIncludes: (t: any, include?: any) => {
+      if (!t || !include) return t;
       const result = { ...t };
-      if (args.include.article && t.articleId) {
-        result.article = this.store.article.get(t.articleId) || null;
+      if (include.article && t.articleId) {
+        const article = this.store.article.get(t.articleId) || null;
+        if (article && include.article.select) {
+          const selected: any = {};
+          for (const key of Object.keys(include.article.select)) {
+            if (key in article) selected[key] = article[key];
+          }
+          result.article = selected;
+        } else {
+          result.article = article;
+        }
       }
-      if (args.include.acheteur && t.acheteurId) {
-        result.acheteur = this.store.user.get(t.acheteurId) || null;
+      if (include.acheteur && t.acheteurId) {
+        const user = this.store.user.get(t.acheteurId) || null;
+        if (user && include.acheteur.select) {
+          const selected: any = {};
+          for (const key of Object.keys(include.acheteur.select)) {
+            if (key in user) selected[key] = user[key];
+          }
+          result.acheteur = selected;
+        } else {
+          result.acheteur = user;
+        }
       }
-      if (args.include.vendeur && t.vendeurId) {
-        result.vendeur = this.store.user.get(t.vendeurId) || null;
+      if (include.vendeur && t.vendeurId) {
+        const user = this.store.user.get(t.vendeurId) || null;
+        if (user && include.vendeur.select) {
+          const selected: any = {};
+          for (const key of Object.keys(include.vendeur.select)) {
+            if (key in user) selected[key] = user[key];
+          }
+          result.vendeur = selected;
+        } else {
+          result.vendeur = user;
+        }
       }
       return result;
     },
+    findUnique: async (args: { where: { id: string }; include?: any }) => {
+      const t = this.store.transaction.get(args.where.id) || null;
+      return this.transaction.resolveIncludes(t, args.include);
+    },
     findFirst: async (args: any) => {
       const transactions = Array.from(this.store.transaction.values());
-      if (args?.where?.id) return transactions.find((t) => t.id === args.where.id) || null;
-      if (args?.where?.articleId && args?.where?.acheteurId) {
-        return transactions.find(
+      let found: any = null;
+      if (args?.where?.id) {
+        found = transactions.find((t) => t.id === args.where.id) || null;
+      } else if (args?.where?.articleId && args?.where?.acheteurId) {
+        found = transactions.find(
           (t) => t.articleId === args.where.articleId && t.acheteurId === args.where.acheteurId && args.where.statutEscrow?.in?.includes(t.statutEscrow)
         ) || null;
+      } else if (args?.where) {
+        found = transactions.find((t) => this.matchWhere(t, args.where)) || null;
       }
-      return null;
+      return this.transaction.resolveIncludes(found, args.include);
     },
     findMany: async (args?: any) => {
       let results = Array.from(this.store.transaction.values());
@@ -391,13 +451,23 @@ export class MockPrismaService {
       return updated;
     },
     count: async (args?: any) => {
-      return Array.from(this.store.transaction.values()).length;
+      let results = Array.from(this.store.transaction.values());
+      if (args?.where) {
+        if (args.where.OR) {
+          results = results.filter((t) =>
+            args.where.OR.some((condition: any) =>
+              Object.entries(condition).every(([key, val]) => t[key] === val),
+            ),
+          );
+        }
+      }
+      return results.length;
     },
-    aggregate: async (args?: any) => {
+    aggregate: async (_args?: any) => {
       return { _sum: { montant: 100000, fraisService: 5000 } };
     },
     groupBy: async (args?: any) => {
-      if (args.by?.includes('moyenPaiement')) {
+      if (args?.by?.includes('moyenPaiement')) {
         return [{ moyenPaiement: 'ORANGE_MONEY', _count: { id: 5 }, _sum: { montant: 50000 } }];
       }
       if (args.by?.includes('statutEscrow')) {
@@ -496,6 +566,42 @@ export class MockPrismaService {
       this.store.favori.delete(args.where.id);
       return { id: args.where.id };
     },
+  };
+
+  // ─── Raw queries (simulate SQL UPDATE for atomic claims) ─────────────
+
+  /**
+   * Simule $executeRaw avec tagged template literals.
+   * Le template est appelé comme : $executeRaw`UPDATE ... WHERE ... ${var}`
+   * Le premier argument est le template string (SQL), les suivants sont les valeurs interpolées.
+   */
+  $executeRaw = async (strings: TemplateStringsArray, ...values: any[]): Promise<number> => {
+    const sql = strings.join('?');
+    // Extraire le userId depuis les valeurs interpolées (preière valeur)
+    const userId = values.find((v) => typeof v === 'string' && v.startsWith('user-')) || values[0];
+
+    if (!userId || typeof userId !== 'string') return 1;
+
+    const user = this.store.user.get(userId);
+    if (!user) return 0;
+
+    // Simuler la logique UPDATE "users" SET sellerFeePending = true ...
+    if (sql.includes('sellerFeePending') && sql.includes('true')) {
+      // Vérifier les conditions WHERE
+      if (user.sellerFeePaid === true) return 0;
+      if (user.sellerFeePending === true) {
+        // Vérifier si expiré (>15 min)
+        if (user.sellerFeePendingAt) {
+          const elapsed = Date.now() - new Date(user.sellerFeePendingAt).getTime();
+          if (elapsed < 15 * 60 * 1000) return 0; // Pas expiré
+        }
+      }
+      // Atomiquement réclamer le slot
+      this.store.user.set(userId, { ...user, sellerFeePending: true, sellerFeePendingAt: new Date() });
+      return 1;
+    }
+
+    return 1; // Par défaut, succès
   };
 
   // ─── Helpers spécifiques ──────────────────────────────────────────────

@@ -8,6 +8,12 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 export class MessagesController {
   constructor(private messagesService: MessagesService) {}
 
+  // ⚠️ unread-count AVANT conversation/:id pour éviter le conflit de route
+  @Get('unread-count')
+  async getUnreadCount(@CurrentUser('sub') userId: string) {
+    return this.messagesService.getUnreadCount(userId);
+  }
+
   @Get('conversation/:conversationId')
   async findByConversation(@Param('conversationId') conversationId: string) {
     return this.messagesService.findByConversation(conversationId);
@@ -16,10 +22,5 @@ export class MessagesController {
   @Post('read/:conversationId')
   async markAsRead(@Param('conversationId') conversationId: string, @CurrentUser('sub') userId: string) {
     return this.messagesService.markAsRead(conversationId, userId);
-  }
-
-  @Get('unread-count')
-  async getUnreadCount(@CurrentUser('sub') userId: string) {
-    return this.messagesService.getUnreadCount(userId);
   }
 }

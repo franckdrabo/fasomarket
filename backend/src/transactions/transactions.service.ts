@@ -36,7 +36,8 @@ export class TransactionsService {
     if (existingTransaction) throw new BadRequestException('Une transaction est déjà en cours');
 
     // Créer la transaction en escrow
-    const fraisService = Math.round(dto.montant * 0.05 * 100) / 100; // 5% de frais
+    const commissionBazario = Math.round(dto.montant * 0.005 * 100) / 100; // 0.5% commission Bazario
+    const fraisService = Math.round(dto.montant * 0.05 * 100) / 100; // 5% frais opérateur
     const dateLimite = new Date();
     dateLimite.setDate(dateLimite.getDate() + 14); // Libération auto après 14 jours
 
@@ -46,6 +47,7 @@ export class TransactionsService {
         acheteurId,
         vendeurId: article.vendeurId,
         montant: dto.montant,
+        commissionBazario,
         fraisService,
         moyenPaiement: dto.moyenPaiement,
         statutEscrow: 'EN_ATTENTE',
@@ -187,18 +189,39 @@ export class TransactionsService {
     return updatedTransaction;
   }
 
-  async findByUser(userId: string) {
-    return this.prisma.transaction.findMany({
-      where: {
-        OR: [{ acheteurId: userId }, { vendeurId: userId }],
+  async findByUser(userId: string, page: number = 1, limit: number = 20) {
+    const skip = (page - 1) * limit;
+
+    const [transactions, total] = await Promise.all([
+      this.prisma.transaction.findMany({
+        where: {
+          OR: [{ acheteurId: userId }, { vendeurId: userId }],
+        },
+        include: {
+          article: { select: { id: true, titre: true, photos: true, prix: true } },
+          acheteur: { select: { id: true, nom: true, avatar: true } },
+          vendeur: { select: { id: true, nom: true, avatar: true } },
+        },
+        orderBy: { dateCreation: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.transaction.count({
+        where: {
+          OR: [{ acheteurId: userId }, { vendeurId: userId }],
+        },
+      }),
+    ]);
+
+    return {
+      data: transactions,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
       },
-      include: {
-        article: { select: { id: true, titre: true, photos: true, prix: true } },
-        acheteur: { select: { id: true, nom: true, avatar: true } },
-        vendeur: { select: { id: true, nom: true, avatar: true } },
-      },
-      orderBy: { dateCreation: 'desc' },
-    });
+    };
   }
 
   async findById(id: string) {
@@ -214,5 +237,100 @@ export class TransactionsService {
 
     if (!transaction) throw new NotFoundException('Transaction introuvable');
     return transaction;
+  }
+
+  // ─── Admin ───────────────────────────────────────────────────────────────
+
+  async resolveDispute(transactionId: string, action: 'LIBERE' | 'REMBOURSE') {
+    const transaction = await this.prisma.transaction.findUnique({
+      where: { id: transactionId },
+      include: { article: true },
+    });
+
+    if (!transaction) throw new NotFoundException('Transaction introuvable');
+    if (transaction.statutEscrow !== 'LITIGE') {
+      throw new BadRequestException('La transaction n\'est pas en litige');
+    }
+
+    if (action === 'LIBERE') {
+      // Libérer les fonds vers le vendeur
+      const updated = await this.prisma.transaction.update({
+        where: { id: transactionId },
+        data: {
+          statutEscrow: 'LIBERE',
+          dateValidation: new Date(),
+        },
+      });
+
+      await this.prisma.article.update({
+        where: { id: transaction.articleId },
+        data: { statut: 'VENDU' },
+      });
+
+      await this.prisma.user.update({
+        where: { id: transaction.vendeurId },
+        data: { nbVentes: { increment: 1 } },
+      });
+      await this.prisma.user.update({
+        where: { id: transaction.acheteurId },
+        data: { nbAchats: { increment: 1 } },
+      });
+
+      await this.notificationsService.sendToUsers(
+        [transaction.acheteurId, transaction.vendeurId],
+        {
+          title: '✅ Litige résolu — Fonds libérés',
+          body: `Le litige a été résolu en faveur du vendeur. ${transaction.montant.toLocaleString()} FCFA ont été libérés.`,
+          data: {
+            type: 'dispute_resolved',
+            transactionId,
+            resolution: 'LIBERE',
+          },
+        },
+      );
+
+      return updated;
+    } else {
+      // Rembourser l'acheteur
+      const updated = await this.prisma.transaction.update({
+        where: { id: transactionId },
+        data: {
+          statutEscrow: 'REMBOURSE',
+          dateValidation: new Date(),
+        },
+      });
+
+      await this.prisma.article.update({
+        where: { id: transaction.articleId },
+        data: { statut: 'EN_LIGNE' },
+      });
+
+      await this.notificationsService.sendToUsers(
+        [transaction.acheteurId, transaction.vendeurId],
+        {
+          title: '🔄 Litige résolu — Remboursement',
+          body: `Le litige a été résolu en faveur de l'acheteur. ${transaction.montant.toLocaleString()} FCFA ont été remboursés.`,
+          data: {
+            type: 'dispute_resolved',
+            transactionId,
+            resolution: 'REMBOURSE',
+          },
+        },
+      );
+
+      return updated;
+    }
+  }
+
+  async getDisputes() {
+    return this.prisma.transaction.findMany({
+      where: { statutEscrow: 'LITIGE' },
+      include: {
+        article: { select: { id: true, titre: true, photos: true, prix: true } },
+        acheteur: { select: { id: true, nom: true, phone: true } },
+        vendeur: { select: { id: true, nom: true, phone: true } },
+      },
+      orderBy: { dateCreation: 'desc' },
+    });
   }
 }

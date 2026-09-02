@@ -38,7 +38,7 @@ export class FavorisService {
       },
     });
 
-    return favoris.map((f) => ({
+    return favoris.map((f: any) => ({
       ...f.article,
       favori: true,
       dateFavori: f.dateCreation,

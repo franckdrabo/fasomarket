@@ -1,17 +1,29 @@
 import { Controller, Post, Get, Param, Body, Query, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiOkResponse, ApiCreatedResponse, ApiQuery, ApiHeader } from '@nestjs/swagger';
 import { PaymentsService } from './payments.service';
 import { MobileMoneyPaymentDto, AdminStatsQueryDto } from './payments.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { AdminGuard } from '../common/guards/admin.guard';
+import { WebhookSignatureGuard } from '../common/guards/webhook-signature.guard';
+import { EscrowDisabledGuard } from '../common/guards/escrow-disabled.guard';
 
+@ApiTags('payments')
 @Controller({ path: 'payments', version: '1' })
 export class PaymentsController {
   constructor(private paymentsService: PaymentsService) {}
 
   // ─── Endpoints authentifiés ───────────────────────────────────────────
 
-  @UseGuards(JwtAuthGuard)
+  // ─── Escrow DÉSACTIVÉ (achat 100% P2P) ──────────────────────────────
+  // L'acheteur paie directement le vendeur par Mobile Money sur le numéro
+  // communiqué dans la messagerie : plus de paiement intégré ni de blocage
+  // des fonds. Le code du service est conservé mais la route répond 410 Gone.
+  @UseGuards(JwtAuthGuard, EscrowDisabledGuard)
   @Post('mobile-money/initiate')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: '[DÉSACTIVÉ] Initier un paiement Mobile Money', description: '⚠️ Escrow désactivé : l\'achat se fait en direct avec le vendeur via la messagerie. Cette route répond 410 Gone.' })
+  @ApiCreatedResponse({ description: 'Paiement initié, en attente de confirmation sur le téléphone' })
   async initiateMobileMoney(
     @CurrentUser('sub') userId: string,
     @Body() dto: MobileMoneyPaymentDto,
@@ -21,30 +33,38 @@ export class PaymentsController {
 
   @UseGuards(JwtAuthGuard)
   @Get('status/:transactionId')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Statut d\'un paiement', description: 'Vérifie le statut d\'une transaction de paiement.' })
+  @ApiOkResponse({ description: 'Statut de la transaction' })
   async getStatus(@Param('transactionId') transactionId: string) {
     return this.paymentsService.getStatus(transactionId);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard)
   @Get('admin/stats')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: '[Admin] Statistiques paiements', description: 'Statistiques sur les transactions par période (7j, 30j, 90j, 1an).' })
+  @ApiQuery({ name: 'periode', required: false, enum: ['7j', '30j', '90j', '1an'] })
+  @ApiOkResponse({ description: 'Statistiques des paiements' })
   async getAdminStats(@Query() query: AdminStatsQueryDto) {
     return this.paymentsService.getAdminStats(query.periode);
   }
 
-  // ─── Webhooks providers (public, signature vérifiée) ──────────────────
+  // ─── Webhook CinetPay (public, vérification serveur) ───────────────────
+  // CinetPay notifie via notify_url (unique pour tous les opérateurs).
+  // On ne se fie JAMAIS au payload brut : CinetPayService.processCallback
+  // re-vérifie le statut côté serveur via /v1/payment/check ET valide
+  // cpm_site_id. WebhookSignatureGuard ajoute la signature HMAC
+  // (X-Signature: HMAC-SHA256(rawBody, WEBHOOK_SECRET)) quand elle est
+  // fournie, et en exige une si REQUIRE_WEBHOOK_SIGNATURE=true.
 
-  @Post('webhook/orange-money')
-  async orangeMoneyCallback(@Body() payload: any) {
-    return this.paymentsService.handleProviderCallback('ORANGE_MONEY', payload);
-  }
-
-  @Post('webhook/moov-money')
-  async moovMoneyCallback(@Body() payload: any) {
-    return this.paymentsService.handleProviderCallback('MOOV_MONEY', payload);
-  }
-
-  @Post('webhook/wave')
-  async waveCallback(@Body() payload: any) {
-    return this.paymentsService.handleProviderCallback('WAVE', payload);
+  @UseGuards(WebhookSignatureGuard)
+  @Post('webhook/cinetpay')
+  @ApiHeader({ name: 'X-Signature', required: false, description: 'HMAC-SHA256 du corps brut signé avec WEBHOOK_SECRET (exigée si REQUIRE_WEBHOOK_SIGNATURE=true)' })
+  @ApiHeader({ name: 'X-Timestamp', required: false, description: 'Timestamp UNIX en ms (anti-replay, ±5 min)' })
+  @ApiOperation({ summary: 'Webhook CinetPay', description: 'Notification de paiement CinetPay (Orange Money, Moov Money, Wave). Authenticité vérifiée : signature HMAC (si fournie), cpm_site_id, puis re-vérification côté serveur via l\'endpoint de check CinetPay.' })
+  @ApiOkResponse({ description: 'Callback traité' })
+  async cinetpayCallback(@Body() payload: any) {
+    return this.paymentsService.handleProviderCallback('CINETPAY', payload);
   }
 }

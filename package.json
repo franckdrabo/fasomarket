@@ -13,6 +13,18 @@
     "mobile:start": "npm run start -w mobile",
     "prisma:generate": "npm run prisma:generate -w backend",
     "prisma:migrate": "npm run prisma:migrate -w backend",
-    "prisma:studio": "npm run prisma:studio -w backend"
+    "prisma:studio": "npm run prisma:studio -w backend",
+    "android": "cd mobile && npx expo run:android",
+    "ios": "cd mobile && npx expo run:ios"
+  },
+  "dependencies": {
+    "metro-runtime": "^0.87.0",
+    "react-native-worklets": "0.5.1"
+  },
+  "allowScripts": {
+    "dtrace-provider@0.8.8": true,
+    "@prisma/client@6.19.3": true,
+    "@prisma/engines@6.19.3": true,
+    "prisma@6.19.3": true
   }
 }

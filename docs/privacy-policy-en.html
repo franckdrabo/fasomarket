@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — Bazario</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      color: #2C3E50;
+      background: #FFF8F0;
+      line-height: 1.7;
+    }
+    .container { max-width: 800px; margin: 0 auto; padding: 40px 24px 80px; }
+    header { text-align: center; margin-bottom: 48px; padding-bottom: 32px; border-bottom: 2px solid #E8D5C4; }
+    header h1 { font-size: 28px; font-weight: 800; color: #FF6B35; margin-bottom: 8px; }
+    header .subtitle { font-size: 16px; color: #7F8C8D; }
+    header .logo { font-size: 36px; margin-bottom: 12px; }
+    .lang-switch { display: flex; justify-content: center; gap: 12px; margin-top: 16px; }
+    .lang-switch a {
+      padding: 6px 16px;
+      border-radius: 20px;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .lang-switch a.active { background: #FF6B35; color: #fff; }
+    .lang-switch a:not(.active) { background: #E8D5C4; color: #7F8C8D; }
+    h2 { font-size: 20px; font-weight: 700; color: #2C3E50; margin: 36px 0 12px; }
+    h3 { font-size: 16px; font-weight: 600; color: #FF6B35; margin: 20px 0 8px; }
+    p, li { font-size: 15px; color: #4A4A4A; margin-bottom: 10px; }
+    ul { padding-left: 20px; margin-bottom: 12px; }
+    li { margin-bottom: 6px; }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+      border: 1px solid #E8D5C4;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 14px; }
+    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #E8D5C4; }
+    th { background: #FFF0E0; font-weight: 600; color: #FF6B35; }
+    .highlight { background: #FFF0E0; padding: 16px 20px; border-radius: 8px; border-left: 4px solid #FF6B35; margin: 16px 0; }
+    .highlight p { margin-bottom: 0; }
+    a { color: #FF6B35; }
+    footer { text-align: center; margin-top: 48px; padding-top: 24px; border-top: 2px solid #E8D5C4; color: #7F8C8D; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">🛒</div>
+      <h1>Privacy Policy</h1>
+      <p class="subtitle">Bazario Mobile Application</p>
+      <div class="lang-switch">
+        <a href="privacy-policy.html">🇫🇷 Français</a>
+        <a href="#" class="active">🇬🇧 English</a>
+      </div>
+      <p class="subtitle" style="margin-top:12px; font-size:13px;">Last updated: August 18, 2026</p>
+    </header>
+
+    <div class="card">
+      <h2>1. Data Controller</h2>
+      <p><strong>Bazario</strong> (the "Application") is published by:</p>
+      <ul>
+        <li><strong>Publisher:</strong> Stromridens Team</li>
+        <li><strong>Contact:</strong> <a href="mailto:contact@bazario.com">contact@bazario.com</a></li>
+        <li><strong>Website:</strong> <a href="https://bazario.com">bazario.com</a></li>
+      </ul>
+      <p>The data controller responsible for your personal data is the Application publisher.</p>
+    </div>
+
+    <div class="card">
+      <h2>2. Data Collected</h2>
+      <p>The Application collects the following data as part of its operation:</p>
+
+      <h3>2.1 Registration and Account Data</h3>
+      <table>
+        <thead>
+          <tr><th>Data</th><th>Purpose</th><th>Legal Basis</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Phone number</td><td>SMS authentication (OTP), communication between users</td><td>Contract performance</td></tr>
+          <tr><td>Email address</td><td>Alternative authentication (email/password)</td><td>Contract performance</td></tr>
+          <tr><td>Password</td><td>Account security (bcrypt hashed)</td><td>Contract performance</td></tr>
+          <tr><td>Display name</td><td>Public identification on listings and conversations</td><td>Contract performance</td></tr>
+          <tr><td>City</td><td>Listing location and geographic search</td><td>Contract performance</td></tr>
+          <tr><td>Bio</td><td>Public user profile</td><td>Consent</td></tr>
+          <tr><td>Profile photo</td><td>Visual identification on profile</td><td>Consent</td></tr>
+        </tbody>
+      </table>
+
+      <h3>2.2 Listing Data</h3>
+      <table>
+        <thead>
+          <tr><th>Data</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Title, description, price, category, condition</td><td>Publishing and searching for items</td></tr>
+          <tr><td>Item photos</td><td>Listing illustrations (stored on Cloudinary)</td></tr>
+          <tr><td>Listing status</td><td>Lifecycle management (online, reserved, sold)</td></tr>
+        </tbody>
+      </table>
+
+      <h3>2.3 Messaging Data</h3>
+      <table>
+        <thead>
+          <tr><th>Data</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Text messages and price offers</td><td>Communication between buyers and sellers</td></tr>
+          <tr><td>Timestamps and read status</td><td>Message ordering and read/unread indicator</td></tr>
+          <tr><td>Conversation history</td><td>Access to previous exchanges</td></tr>
+        </tbody>
+      </table>
+
+      <h3>2.4 Payment Data</h3>
+      <table>
+        <thead>
+          <tr><th>Data</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Payment reference</td><td>Tracking Mobile Money transactions (Orange Money, Moov Money, Wave)</td></tr>
+          <tr><td>Operator used</td><td>Payment processing via CinetPay</td></tr>
+          <tr><td>Amount and transaction status</td><td>Payment and dispute management</td></tr>
+        </tbody>
+      </table>
+      <div class="highlight">
+        <p><strong>⚠️ Important:</strong> Bazario <strong>never</strong> stores credit card numbers, Mobile Money credentials, or payment service passwords. Payments are processed exclusively by CinetPay, a PCI-DSS certified payment provider.</p>
+      </div>
+
+      <h3>2.5 Technical Data</h3>
+      <table>
+        <thead>
+          <tr><th>Data</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Push notification token (FCM)</td><td>Sending notifications (new messages, payments, etc.)</td></tr>
+          <tr><td>Biometric device identifier</td><td>Quick login via fingerprint / Face ID (optional)</td></tr>
+          <tr><td>Notification history</td><td>Log of notifications sent (status: sent, delivered, failed)</td></tr>
+        </tbody>
+      </table>
+
+      <h3>2.6 Review Data</h3>
+      <table>
+        <thead>
+          <tr><th>Data</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Rating (1 to 5) and comment</td><td>Seller and buyer evaluation system</td></tr>
+          <tr><td>Average rating, number of sales/purchases</td><td>Public reliability statistics</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>3. Use of Data</h2>
+      <p>Your data is used for the following purposes:</p>
+      <ul>
+        <li><strong>Service provision:</strong> Account creation, listing publication, messaging, payments</li>
+        <li><strong>Security:</strong> Authentication, fraud prevention, abuse protection</li>
+        <li><strong>Communication:</strong> Push notifications about your activities (messages, payments, disputes)</li>
+        <li><strong>Service improvement:</strong> Aggregated (anonymized) statistics to improve user experience</li>
+        <li><strong>Legal obligations:</strong> Compliance with applicable financial and tax regulations</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>4. Data Sharing</h2>
+      <p>Your personal data may be shared with the following third parties, only to the extent necessary for service operation:</p>
+      <ul>
+        <li><strong>CinetPay</strong> (payments) — For Mobile Money payment processing. CinetPay is a PCI-DSS certified payment provider. Learn more: <a href="https://www.cinetpay.com" target="_blank">cinetpay.com</a></li>
+        <li><strong>Africastalking</strong> (SMS) — For sending OTP verification codes by SMS. Learn more: <a href="https://africastalking.com" target="_blank">africastalking.com</a></li>
+        <li><strong>Cloudinary</strong> (image storage) — For hosting listing and profile photos. Learn more: <a href="https://www.cloudinary.com" target="_blank">cloudinary.com</a></li>
+        <li><strong>Firebase / Google</strong> (push notifications) — For sending push notifications via Firebase Cloud Messaging (FCM). Learn more: <a href="https://firebase.google.com" target="_blank">firebase.google.com</a></li>
+      </ul>
+      <div class="highlight">
+        <p><strong>We never sell your personal data to third parties.</strong> Data sharing is limited exclusively to technical service providers necessary for Application operation.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>5. Data Security</h2>
+      <p>Bazario implements strict technical and organizational measures to protect your data:</p>
+      <ul>
+        <li><strong>Encryption at rest:</strong> Sensitive data (email, refresh tokens) is encrypted with AES-256-GCM in the database</li>
+        <li><strong>Password hashing:</strong> Passwords are hashed with bcrypt (salt 12) — they are never stored in plain text</li>
+        <li><strong>OTP hashing:</strong> Verification codes are hashed with Argon2id</li>
+        <li><strong>Secure transmission:</strong> All API communications use HTTPS/TLS</li>
+        <li><strong>Rate limiting:</strong> Protection against brute force attacks on authentication endpoints</li>
+        <li><strong>JWT:</strong> Token-based authentication with automatic refresh token rotation</li>
+        <li><strong>Helmet:</strong> HTTP security headers (X-Content-Type-Options, CSP, etc.)</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>6. Data Retention</h2>
+      <table>
+        <thead>
+          <tr><th>Data Type</th><th>Retention Period</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>User account</td><td>While account is active, then 30 days after deletion</td></tr>
+          <tr><td>Conversation messages</td><td>While conversation exists (deletable by user)</td></tr>
+          <tr><td>Transaction history</td><td>5 years (legal accounting obligation)</td></tr>
+          <tr><td>Sent notifications</td><td>90 days</td></tr>
+          <tr><td>Connection logs</td><td>30 days</td></tr>
+          <tr><td>Push notification tokens</td><td>Until logout or notification deactivation</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>7. Your Rights</h2>
+      <p>In accordance with the General Data Protection Regulation (GDPR) and applicable local legislation, you have the following rights:</p>
+      <ul>
+        <li><strong>Right of access:</strong> Obtain a copy of all personal data concerning you</li>
+        <li><strong>Right to rectification:</strong> Correct inaccurate or incomplete data</li>
+        <li><strong>Right to erasure:</strong> Request deletion of your personal data ("right to be forgotten")</li>
+        <li><strong>Right to data portability:</strong> Receive your data in a structured, machine-readable format</li>
+        <li><strong>Right to object:</strong> Object to the processing of your data for direct marketing purposes</li>
+        <li><strong>Right to restriction:</strong> Request restriction of the processing of your data</li>
+      </ul>
+      <p>To exercise these rights, contact us at: <a href="mailto:contact@bazario.com">contact@bazario.com</a></p>
+      <p>We commit to responding to your request within <strong>30 days</strong>.</p>
+    </div>
+
+    <div class="card">
+      <h2>8. Account Deletion</h2>
+      <p>You can request deletion of your account and all your personal data by contacting us at <a href="mailto:contact@bazario.com">contact@bazario.com</a>. Deletion will be carried out within 30 days, subject to legal retention obligations (transaction history retained for 5 years).</p>
+      <p>Deleting your account results in:</p>
+      <ul>
+        <li>Deletion of your profile and all your listings</li>
+        <li>Deletion of your messages (conversations will be anonymized)</li>
+        <li>Deletion of your push notification tokens</li>
+        <li>Deactivation of your access to the Application</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>9. Cookies and Similar Technologies</h2>
+      <p>The Bazario mobile application does not use cookies. The only storage technologies used are:</p>
+      <ul>
+        <li><strong>SecureStore (iOS) / EncryptedSharedPreferences (Android):</strong> Secure storage of authentication tokens on the device</li>
+        <li><strong>AsyncStorage:</strong> Local storage of user preferences (non-sensitive)</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>10. International Data Transfers</h2>
+      <p>Your data is hosted on servers located in France and Europe (via our infrastructure providers). Third-party providers (Firebase, Cloudinary, CinetPay, Africastalking) may transfer certain data to countries outside the European Economic Area (EEA). In such cases, we ensure that appropriate safeguards are in place (standard contractual clauses, adequacy decisions).</p>
+    </div>
+
+    <div class="card">
+      <h2>11. Protection of Minors</h2>
+      <p>The Application is not intended for persons under 16 years of age. We do not knowingly collect personal data from children under 16. If you are a parent or guardian and believe your child has provided us with personal data, please contact us immediately at <a href="mailto:contact@bazario.com">contact@bazario.com</a> so that we can proceed with its deletion.</p>
+    </div>
+
+    <div class="card">
+      <h2>12. Changes to This Policy</h2>
+      <p>We reserve the right to modify this privacy policy at any time. In the event of a substantial modification, we will inform you via push notification or email. The date of the last update is indicated at the top of this page.</p>
+    </div>
+
+    <div class="card">
+      <h2>13. Contact</h2>
+      <p>For any questions regarding this privacy policy or the protection of your personal data:</p>
+      <ul>
+        <li><strong>Email:</strong> <a href="mailto:contact@bazario.com">contact@bazario.com</a></li>
+        <li><strong>Website:</strong> <a href="https://bazario.com">bazario.com</a></li>
+      </ul>
+      <p>If you believe that the processing of your data does not comply with regulations, you have the right to lodge a complaint with the competent data protection authority.</p>
+    </div>
+
+    <footer>
+      <p>&copy; 2026 Bazario — Stromridens Team. All rights reserved.</p>
+      <p style="margin-top:8px;">This privacy policy complies with the GDPR (EU) 2016/679 and CNIL recommendations.</p>
+    </footer>
+  </div>
+</body>
+</html>

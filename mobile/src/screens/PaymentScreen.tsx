@@ -7,12 +7,15 @@ import {
   ScrollView,
   StyleSheet,
   Alert,
-  Platform,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../services/api';
 import { colors, spacing, borderRadius, typography, shadows } from '../theme';
+import CountryPicker from '../components/CountryPicker';
+import { DEFAULT_COUNTRY } from '../utils/countries';
+import type { Country } from '../utils/countries';
 
 interface PaymentProvider {
   id: string;
@@ -68,13 +71,14 @@ interface Props {
 
 export default function PaymentScreen({ article, onBack, onPaymentComplete }: Props) {
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
+  const [selectedCountry, setSelectedCountry] = useState<Country>(DEFAULT_COUNTRY);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [agreed, setAgreed] = useState(false);
 
   const formattedPrice = article.prix.toLocaleString('fr-FR');
-  const fraisService = article.prix * 0.05;
-  const total = article.prix + fraisService;
+  const commissionBazario = article.prix * 0.005; // 0.5%
+  const total = article.prix + commissionBazario;
 
   async function handlePayment() {
     if (!selectedProvider) {
@@ -118,12 +122,18 @@ export default function PaymentScreen({ article, onBack, onPaymentComplete }: Pr
         moyenPaiement: selectedProvider,
       });
 
-      // 3. Initier le paiement mobile money
-      await api.payments.initiateMobileMoney(
+      // 3. Initier le paiement mobile money (CinetPay)
+      const fullPhone = `${selectedCountry.code}${phoneNumber}`;
+      const initiated = await api.payments.initiateMobileMoney(
         transaction.id,
-        phoneNumber,
+        fullPhone,
         selectedProvider,
       );
+
+      // Ouvrir la page de paiement sécurisée CinetPay
+      if (initiated.paymentUrl) {
+        Linking.openURL(initiated.paymentUrl).catch(() => {});
+      }
 
       // Rediriger vers la confirmation
       onPaymentComplete({
@@ -137,14 +147,6 @@ export default function PaymentScreen({ article, onBack, onPaymentComplete }: Pr
     } finally {
       setIsProcessing(false);
     }
-  }
-
-  function formatPhoneNumber(text: string) {
-    // Ne garder que les chiffres
-    const cleaned = text.replace(/[^0-9]/g, '');
-    // Limiter à 12 chiffres (indicatif + numéro)
-    if (cleaned.length > 12) return phoneNumber;
-    setPhoneNumber(cleaned);
   }
 
   return (
@@ -242,17 +244,18 @@ export default function PaymentScreen({ article, onBack, onPaymentComplete }: Pr
           </Text>
 
           <View style={styles.phoneInputContainer}>
-            <View style={styles.phonePrefix}>
-              <Text style={styles.phonePrefixText}>+225</Text>
-            </View>
+            <CountryPicker
+              selectedCountry={selectedCountry}
+              onSelect={setSelectedCountry}
+            />
             <TextInput
               style={styles.phoneInput}
-              placeholder="0708091011"
+              placeholder={selectedCountry.phoneFormat}
               placeholderTextColor={colors.disabled}
               keyboardType="phone-pad"
               value={phoneNumber}
-              onChangeText={formatPhoneNumber}
-              maxLength={12}
+              onChangeText={(text) => setPhoneNumber(text.replace(/[^0-9]/g, ''))}
+              maxLength={selectedCountry.maxLength}
             />
           </View>
         </View>
@@ -263,12 +266,12 @@ export default function PaymentScreen({ article, onBack, onPaymentComplete }: Pr
 
           <View style={styles.feeCard}>
             <View style={styles.feeRow}>
-              <Text style={styles.feeLabel}>Prix de l'article</Text>
+              <Text style={styles.feeLabel}>Prix de l&apos;article</Text>
               <Text style={styles.feeValue}>{formattedPrice} FCFA</Text>
             </View>
             <View style={styles.feeRow}>
-              <Text style={styles.feeLabel}>Frais de service (5%)</Text>
-              <Text style={styles.feeValue}>{fraisService.toLocaleString('fr-FR')} FCFA</Text>
+              <Text style={styles.feeLabel}>Commission Bazario (0.5%)</Text>
+              <Text style={styles.feeValue}>{commissionBazario.toLocaleString('fr-FR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} FCFA</Text>
             </View>
             <View style={[styles.feeRow, styles.feeTotalRow]}>
               <Text style={styles.feeTotalLabel}>Total à payer</Text>
@@ -281,7 +284,7 @@ export default function PaymentScreen({ article, onBack, onPaymentComplete }: Pr
           <View style={styles.infoBox}>
             <Ionicons name="shield-checkmark" size={20} color={colors.secondary} />
             <Text style={styles.infoBoxText}>
-              Paiement sécurisé via Bazario Escrow. Les fonds sont bloqués jusqu'à
+              Paiement sécurisé via Bazario Escrow. Les fonds sont bloqués jusqu&apos;à
               confirmation de réception.
             </Text>
           </View>
@@ -297,8 +300,8 @@ export default function PaymentScreen({ article, onBack, onPaymentComplete }: Pr
             {agreed && <Ionicons name="checkmark" size={16} color="#fff" />}
           </View>
           <Text style={styles.termsText}>
-            J'accepte les{' '}
-            <Text style={styles.termsLink}>conditions d'utilisation</Text> et la{' '}
+            J&apos;accepte les{' '}
+            <Text style={styles.termsLink}>conditions d&apos;utilisation</Text> et la{' '}
             <Text style={styles.termsLink}>politique de remboursement</Text>
           </Text>
         </TouchableOpacity>
@@ -479,19 +482,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-  },
-  phonePrefix: {
-    backgroundColor: colors.surface,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  phonePrefixText: {
-    ...typography.body,
-    fontWeight: '600',
-    color: colors.textSecondary,
   },
   phoneInput: {
     flex: 1,

@@ -18,6 +18,7 @@ import Animated, {
   SlideOutDown,
   interpolate,
   Extrapolate,
+  type SharedValue,
 } from 'react-native-reanimated';
 
 // ─── Constantes d'animation ─────────────────────────────────────────────────
@@ -303,7 +304,7 @@ export function AnimatedScreenWrapper({ children, style }: AnimatedScreenWrapper
 interface ParallaxImageProps {
   uri: string;
   height: number;
-  scrollOffset: Animated.SharedValue<number>;
+  scrollOffset: SharedValue<number>;
   style?: any;
 }
 

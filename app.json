@@ -1,0 +1,8 @@
+{
+  "android": {
+    "package": "com.stro_rien.bazario"
+  },
+  "ios": {
+    "bundleIdentifier": "com.stro-rien.bazario"
+  }
+}

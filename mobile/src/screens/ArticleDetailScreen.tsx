@@ -1,16 +1,18 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
-  Image,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
   Dimensions,
   Alert,
   Share,
+  Linking,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { ArticleCardData } from '../components/ArticleCard';
 import { api } from '../services/api';
@@ -24,10 +26,9 @@ interface Props {
   article: ArticleCardData;
   onBack: () => void;
   onContactSeller?: (article: ArticleCardData) => void;
-  onBuyPress?: (article: ArticleCardData) => void;
 }
 
-export default function ArticleDetailScreen({ article, onBack, onContactSeller, onBuyPress }: Props) {
+export default function ArticleDetailScreen({ article, onBack, onContactSeller }: Props) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFavorite, setIsFavorite] = useState(article.favoris || false);
   const { user } = useAuthStore();
@@ -58,6 +59,28 @@ export default function ArticleDetailScreen({ article, onBack, onContactSeller, 
     } catch {}
   }
 
+  function handleWhatsApp() {
+    const phone = article.vendeur.telephone;
+    if (!phone) {
+      Alert.alert('Indisponible', 'Le vendeur n\'a pas renseigné son numéro WhatsApp.');
+      return;
+    }
+
+    // Formatage pour WhatsApp (enlever les espaces, +, etc si nécessaire)
+    const cleanPhone = phone.replace(/\D/g, '');
+    const message = encodeURIComponent(`Bonjour, je suis intéressé par votre annonce "${article.titre}" sur Bazario.`);
+    const url = `whatsapp://send?phone=${cleanPhone}&text=${message}`;
+
+    Linking.canOpenURL(url).then(supported => {
+      if (supported) {
+        Linking.openURL(url);
+      } else {
+        // Fallback web si l'app n'est pas installée
+        Linking.openURL(`https://wa.me/${cleanPhone}?text=${message}`);
+      }
+    });
+  }
+
   function handleContact() {
     if (onContactSeller) {
       onContactSeller(article);
@@ -69,10 +92,43 @@ export default function ArticleDetailScreen({ article, onBack, onContactSeller, 
     }
   }
 
+  function handleReport() {
+    Alert.alert(
+      'Signaler cet article',
+      'Pourquoi souhaitez-vous signaler cette annonce ?',
+      [
+        { text: 'Contrefaçon / Produit interdit', onPress: () => submitReport('CONTREFACON') },
+        { text: 'Fraude / Arnaque', onPress: () => submitReport('FRAUDE') },
+        { text: 'Article déjà vendu', onPress: () => submitReport('VENDU') },
+        { text: 'Autre', onPress: () => submitReport('AUTRE') },
+        { text: 'Annuler', style: 'cancel' },
+      ]
+    );
+  }
+
+  async function submitReport(reason: string) {
+    try {
+      // Simuler un appel API pour le signalement
+      // En production : await api.articles.report(article.id, reason);
+      Alert.alert('Merci', 'Votre signalement a été pris en compte. Nos modérateurs vont l\'examiner.');
+    } catch (error) {
+      Alert.alert('Erreur', 'Impossible d\'envoyer le signalement pour le moment.');
+    }
+  }
+
   const isOwnArticle = user?.id === article.vendeur.id;
 
   return (
-    <View style={styles.container}>
+    <LinearGradient
+      colors={['#FDDCB5', '#FFF0E0', '#FFF8F0']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0, y: 1 }}
+      style={styles.container}
+    >
+      {/* Decorative circles */}
+      <View style={styles.decorCircle1} />
+      <View style={styles.decorCircle2} />
+
       {/* Header Overlay */}
       <SafeAreaView style={styles.headerOverlay} edges={['top']}>
         <View style={styles.headerRow}>
@@ -91,6 +147,9 @@ export default function ArticleDetailScreen({ article, onBack, onContactSeller, 
             <TouchableOpacity style={styles.headerButton} onPress={handleShare}>
               <Ionicons name="share-outline" size={24} color="#fff" />
             </TouchableOpacity>
+            <TouchableOpacity style={styles.headerButton} onPress={handleReport}>
+              <Ionicons name="ellipsis-vertical" size={24} color="#fff" />
+            </TouchableOpacity>
           </View>
         </View>
       </SafeAreaView>
@@ -102,12 +161,30 @@ export default function ArticleDetailScreen({ article, onBack, onContactSeller, 
       >
         {/* Image Gallery */}
         <View style={styles.imageGallery}>
-          {article.photos?.[0] ? (
-            <Image
-              source={{ uri: article.photos[0] }}
-              style={styles.mainImage}
-              resizeMode="cover"
-            />
+          {article.photos && article.photos.length > 0 ? (
+            <ScrollView
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onMomentumScrollEnd={(e) => {
+                const index = Math.round(
+                  e.nativeEvent.contentOffset.x / SCREEN_WIDTH,
+                );
+                if (index !== currentImageIndex) {
+                  setCurrentImageIndex(Math.max(0, Math.min(index, article.photos.length - 1)));
+                }
+              }}
+            >
+              {article.photos.map((photoUrl, index) => (
+                <Image
+                  key={`${photoUrl}-${index}`}
+                  source={photoUrl}
+                  style={styles.mainImage}
+                  contentFit="cover"
+                  transition={500}
+                />
+              ))}
+            </ScrollView>
           ) : (
             <View style={[styles.mainImage, styles.imagePlaceholder]}>
               <Ionicons name="image-outline" size={60} color={colors.disabled} />
@@ -217,19 +294,19 @@ export default function ArticleDetailScreen({ article, onBack, onContactSeller, 
               <Text style={styles.ownArticleButtonText}>Votre annonce</Text>
             </TouchableOpacity>
           ) : (
-            <View style={styles.bottomActions}>
-              <TouchableOpacity style={styles.buyButton} onPress={() => onBuyPress?.(article)}>
-                <Ionicons name="cart" size={20} color={colors.textOnPrimary} />
-                <Text style={styles.buyButtonText}>Acheter</Text>
+            <View style={styles.actionsContainer}>
+              <TouchableOpacity style={styles.whatsappButton} onPress={handleWhatsApp} activeOpacity={0.85}>
+                <Ionicons name="logo-whatsapp" size={20} color="#fff" />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.contactButtonMini} onPress={handleContact}>
-                <Ionicons name="chatbubble-ellipses" size={20} color={colors.primary} />
+              <TouchableOpacity style={styles.buyButton} onPress={handleContact} activeOpacity={0.85}>
+                <Ionicons name="chatbubble-ellipses" size={20} color={colors.textOnPrimary} />
+                <Text style={styles.buyButtonText}>Contacter</Text>
               </TouchableOpacity>
             </View>
           )}
         </View>
       </SafeAreaView>
-    </View>
+    </LinearGradient>
   );
 }
 
@@ -248,7 +325,28 @@ function InfoItem({ icon, label, value }: { icon: string; label: string; value: 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+  },
+
+  // Decorative circles
+  decorCircle1: {
+    position: 'absolute',
+    top: -30,
+    right: -20,
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: '#FF6B35',
+    opacity: 0.08,
+  },
+  decorCircle2: {
+    position: 'absolute',
+    bottom: 150,
+    left: -30,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: '#2ECC71',
+    opacity: 0.05,
   },
   scrollView: {
     flex: 1,
@@ -386,6 +484,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     padding: spacing.md,
     borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
     marginBottom: spacing.lg,
     ...shadows.sm,
   },
@@ -446,6 +546,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     padding: spacing.md,
     borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
     ...shadows.sm,
   },
   infoContent: {
@@ -486,6 +588,20 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.primary,
   },
+  actionsContainer: {
+    flex: 2,
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  whatsappButton: {
+    width: 50,
+    height: 50,
+    backgroundColor: '#25D366',
+    borderRadius: borderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shadows.md,
+  },
   contactButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -500,16 +616,13 @@ const styles = StyleSheet.create({
     ...typography.button,
     color: colors.textOnPrimary,
   },
-  bottomActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
   buyButton: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: spacing.sm,
-    backgroundColor: colors.secondary,
+    backgroundColor: colors.primary,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.xl,
     borderRadius: borderRadius.md,
@@ -518,16 +631,6 @@ const styles = StyleSheet.create({
   buyButtonText: {
     ...typography.button,
     color: colors.textOnPrimary,
-  },
-  contactButtonMini: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: colors.primary,
   },
   ownArticleButton: {
     flexDirection: 'row',

@@ -95,20 +95,23 @@ describe('ConversationsService', () => {
     });
 
     it("devrait trouver les conversations où l'utilisateur est acheteur", async () => {
-      const convs = await service.findByUser('acheteur-1');
-      expect(convs).toHaveLength(1);
-      expect(convs[0].id).toBe('conv-1');
+      const result = await service.findByUser('acheteur-1');
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0].id).toBe('conv-1');
+      expect(result.pagination).toBeDefined();
+      expect(result.pagination.total).toBe(1);
     });
 
     it("devrait trouver les conversations où l'utilisateur est vendeur", async () => {
-      const convs = await service.findByUser('vendeur-1');
-      expect(convs).toHaveLength(1);
-      expect(convs[0].id).toBe('conv-1');
+      const result = await service.findByUser('vendeur-1');
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0].id).toBe('conv-1');
     });
 
     it('devrait retourner un tableau vide si aucune conversation', async () => {
-      const convs = await service.findByUser('tiers');
-      expect(convs).toHaveLength(0);
+      const result = await service.findByUser('tiers');
+      expect(result.data).toHaveLength(0);
+      expect(result.pagination.total).toBe(0);
     });
 
     it('devrait inclure les relations et le dernier message', async () => {
@@ -120,12 +123,12 @@ describe('ConversationsService', () => {
         },
       });
 
-      const convs: any[] = await service.findByUser('acheteur-1');
-      expect(convs[0].messages).toHaveLength(1);
-      expect(convs[0].messages[0].contenu).toBe('Bonjour, toujours disponible ?');
-      expect(convs[0].article).toHaveProperty('titre');
-      expect(convs[0].acheteur).toHaveProperty('nom');
-      expect(convs[0].vendeur).toHaveProperty('nom');
+      const result = await service.findByUser('acheteur-1');
+      expect(result.data[0].messages).toHaveLength(1);
+      expect(result.data[0].messages[0].contenu).toBe('Bonjour, toujours disponible ?');
+      expect(result.data[0].article).toHaveProperty('titre');
+      expect(result.data[0].acheteur).toHaveProperty('nom');
+      expect(result.data[0].vendeur).toHaveProperty('nom');
     });
   });
 

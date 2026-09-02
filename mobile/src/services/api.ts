@@ -1,4 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import Constants from 'expo-constants';
 
 // Lire l'URL de l'API depuis l'env EAS (injecté par eas.json à la compilation)
@@ -11,11 +11,12 @@ const currentEnv =
 const API_BASE_URL =
   Constants.expoConfig?.extra?.apiUrl?.[currentEnv] ??
   (__DEV__
-    ? 'http://10.0.2.2:3000/api/v1' // Android emulator -> localhost
+    ? 'http://192.168.1.70:3000/api/v1' // IP locale du PC pour Expo Go sur téléphone
+          // Pour Android emulator uniquement : 'http://10.0.2.2:3000/api/v1'
     : 'https://api.bazario.com/api/v1');
 
-const TOKEN_KEY = '@bazario/accessToken';
-const REFRESH_TOKEN_KEY = '@bazario/refreshToken';
+const TOKEN_KEY = 'bazario_access_token';
+const REFRESH_TOKEN_KEY = 'bazario_refresh_token';
 
 interface RequestOptions {
   method?: string;
@@ -25,24 +26,58 @@ interface RequestOptions {
 }
 
 async function getAccessToken(): Promise<string | null> {
-  return AsyncStorage.getItem(TOKEN_KEY);
+  try {
+    return await SecureStore.getItemAsync(TOKEN_KEY);
+  } catch {
+    return null;
+  }
 }
 
 async function getRefreshToken(): Promise<string | null> {
-  return AsyncStorage.getItem(REFRESH_TOKEN_KEY);
+  try {
+    return await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+  } catch {
+    return null;
+  }
 }
 
 async function storeTokens(accessToken: string, refreshToken: string) {
-  await AsyncStorage.setItem(TOKEN_KEY, accessToken);
-  await AsyncStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  await Promise.all([
+    SecureStore.setItemAsync(TOKEN_KEY, accessToken),
+    SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken),
+  ]);
 }
 
 async function clearTokens() {
-  await AsyncStorage.removeItem(TOKEN_KEY);
-  await AsyncStorage.removeItem(REFRESH_TOKEN_KEY);
+  await Promise.all([
+    SecureStore.deleteItemAsync(TOKEN_KEY).catch(() => {}),
+    SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY).catch(() => {}),
+  ]);
 }
 
 export { getAccessToken, getRefreshToken, storeTokens, clearTokens };
+
+const REQUEST_TIMEOUT = 15000; // 15 secondes max
+
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs: number = REQUEST_TIMEOUT): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new ApiError(0, { message: 'La connexion au serveur a expiré. Vérifiez votre réseau.' });
+    }
+    throw new ApiError(0, { message: 'Impossible de joindre le serveur. Vérifiez votre connexion.' });
+  }
+}
 
 async function request<T = any>(
   endpoint: string,
@@ -50,8 +85,11 @@ async function request<T = any>(
 ): Promise<T> {
   const { method = 'GET', body, headers = {}, requiresAuth = true } = options;
 
+  // Ne jamais forcer Content-Type pour un FormData : React Native ajoute
+  // automatiquement le header multipart avec le boundary. Le forcer (même
+  // multipart/form-data sans boundary) casse l'upload côté Multer.
   const requestHeaders: Record<string, string> = {
-    'Content-Type': 'application/json',
+    ...(body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
     ...headers,
   };
 
@@ -68,10 +106,12 @@ async function request<T = any>(
   };
 
   if (body) {
-    config.body = JSON.stringify(body);
+    // Un FormData doit être envoyé tel quel (RN ajoute boundary) :
+    // JSON.stringify(new FormData()) donnerait un corps vide ('{}').
+    config.body = body instanceof FormData ? body : JSON.stringify(body);
   }
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+  const response = await fetchWithTimeout(`${API_BASE_URL}${endpoint}`, config);
 
   // Token expiré — tenter un refresh
   if (response.status === 401 && requiresAuth) {
@@ -81,7 +121,7 @@ async function request<T = any>(
       const newToken = await getAccessToken();
       requestHeaders['Authorization'] = `Bearer ${newToken}`;
       config.headers = requestHeaders;
-      const retryResponse = await fetch(`${API_BASE_URL}${endpoint}`, config);
+      const retryResponse = await fetchWithTimeout(`${API_BASE_URL}${endpoint}`, config);
       if (!retryResponse.ok) {
         throw new ApiError(
           retryResponse.status,
@@ -111,7 +151,7 @@ async function refreshAccessToken(): Promise<boolean> {
     const refreshToken = await getRefreshToken();
     if (!refreshToken) return false;
 
-    const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+    const response = await fetchWithTimeout(`${API_BASE_URL}/auth/refresh`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ refreshToken }),
@@ -143,21 +183,21 @@ export class ApiError extends Error {
 export const api = {
   // Auth
   auth: {
-    sendOtp: (phone: string) =>
+    sendOtp: (email: string) =>
       request('/auth/send-otp', {
         method: 'POST',
-        body: { phone },
+        body: { email },
         requiresAuth: false,
       }),
 
-    verifyOtp: (phone: string, code: string, fcmToken?: string) =>
+    verifyOtp: (email: string, code: string, fcmToken?: string) =>
       request<{
         accessToken: string;
         refreshToken: string;
-        user: { id: string; phone: string; nom: string; avatar?: string; ville?: string };
+        user: { id: string; phone?: string; email?: string; nom: string; avatar?: string; ville?: string };
       }>('/auth/verify-otp', {
         method: 'POST',
-        body: { phone, code, fcmToken },
+        body: { email, code, fcmToken },
         requiresAuth: false,
       }),
 
@@ -170,7 +210,7 @@ export const api = {
 
     getProfile: () => request('/auth/profile'),
 
-    updateProfile: (data: { nom?: string; ville?: string; bio?: string }) =>
+    updateProfile: (data: { nom?: string; ville?: string; bio?: string; avatar?: string; role?: string }) =>
       request('/auth/profile', {
         method: 'PATCH',
         body: data,
@@ -192,10 +232,45 @@ export const api = {
       request<{
         accessToken: string;
         refreshToken: string;
-        user: { id: string; phone: string; nom: string; avatar?: string; ville?: string };
+        user: { id: string; phone?: string; email?: string; nom: string; avatar?: string; ville?: string };
       }>('/auth/biometric-login', {
         method: 'POST',
         body: { refreshToken },
+        requiresAuth: false,
+      }),
+
+    // Email / Password
+    registerEmail: (email: string, password: string, nom: string, ville?: string, role?: string) =>
+      request<{
+        accessToken: string;
+        refreshToken: string;
+        user: { id: string; email: string; nom: string; avatar?: string; ville?: string; role?: string; sellerFeePaid?: boolean };
+      }>('/auth/email/register', {
+        method: 'POST',
+        body: { email, password, nom, ville, role },
+        requiresAuth: false,
+      }),
+
+    activateSeller: (telephone: string, operateur: string) =>
+      request<{ status: string; providerReference?: string; paymentUrl?: string; message: string }>('/auth/activate-seller', {
+        method: 'POST',
+        body: { telephone, operateur },
+      }),
+
+    confirmSellerActivation: (reference: string) =>
+      request<{ message: string; sellerFeePaid: boolean }>('/auth/activate-seller/confirm', {
+        method: 'POST',
+        body: { reference },
+      }),
+
+    loginEmail: (email: string, password: string) =>
+      request<{
+        accessToken: string;
+        refreshToken: string;
+        user: { id: string; email: string; nom: string; avatar?: string; ville?: string };
+      }>('/auth/email/login', {
+        method: 'POST',
+        body: { email, password },
         requiresAuth: false,
       }),
   },
@@ -218,6 +293,9 @@ export const api = {
 
     markAsSold: (id: string) =>
       request(`/articles/${id}/sold`, { method: 'PATCH' }),
+
+    mine: () =>
+      request('/articles/mine'),
   },
 
   // Conversations
@@ -230,23 +308,39 @@ export const api = {
       request('/conversations', { method: 'POST', body: { articleId } }),
   },
 
+  // Messages
+  messages: {
+    getByConversation: (conversationId: string) =>
+      request(`/messages/conversation/${conversationId}`),
+
+    markAsRead: (conversationId: string) =>
+      request(`/messages/read/${conversationId}`, { method: 'POST' }),
+
+    getUnreadCount: () =>
+      request<{ unreadCount: number }>('/messages/unread-count'),
+  },
+
   // Upload
   upload: {
     image: (file: any) => {
       const formData = new FormData();
       formData.append('file', file);
+      // Pas de header Content-Type : RN ajoute automatiquement
+      // multipart/form-data; boundary=... (header manuel = upload cassé)
       return request('/upload/image', {
         method: 'POST',
-        headers: { 'Content-Type': 'multipart/form-data' },
         body: formData,
       });
     },
   },
 
   // Paiements Mobile Money
+  // NOTE: L'escrow est désactivé (achat 100% P2P). Les routes escrow
+  // répondent 410 Gone. Les fonctions ci-dessous sont conservées pour
+  // la compatibilité de type avec les écrans legacy (PaymentScreen).
   payments: {
     initiateMobileMoney: (transactionId: string, telephone: string, moyenPaiement: string) =>
-      request('/payments/mobile-money/initiate', {
+      request<{ providerReference?: string; paymentUrl?: string; transactionId: string; provider: string; message: string }>('/payments/mobile-money/initiate', {
         method: 'POST',
         body: { transactionId, telephone, moyenPaiement },
       }),
@@ -269,6 +363,10 @@ export const api = {
   },
 
   // Transactions
+  // NOTE: Les routes escrow (initiate, confirmPayment, confirmReception, dispute)
+  // sont désactivées (410 Gone). L'achat se fait 100% P2P via la messagerie.
+  // Les fonctions ci-dessous sont conservées pour la compatibilité de type
+  // avec les écrans legacy (TransactionDetailScreen, PaymentScreen).
   transactions: {
     initiate: (data: { articleId: string; conversationId: string; montant: number; moyenPaiement: string }) =>
       request('/transactions/initiate', {
@@ -308,9 +406,8 @@ export const api = {
       }),
 
     unregisterToken: (token: string) =>
-      request('/notifications/unregister-token', {
+      request(`/notifications/unregister-token?token=${encodeURIComponent(token)}`, {
         method: 'DELETE',
-        body: { token },
       }),
 
     // Historique

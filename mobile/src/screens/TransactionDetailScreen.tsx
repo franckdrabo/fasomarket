@@ -34,7 +34,7 @@ export default function TransactionDetailScreen({ transaction, onBack, onRefresh
   const [isActionLoading, setIsActionLoading] = useState(false);
 
   const isBuyer = transaction.acheteur.id === user?.id;
-  const otherParty = isBuyer ? transaction.vendeur : transaction.acheteur;
+  const _otherParty = isBuyer ? transaction.vendeur : transaction.acheteur;
   const statusColor = STATUT_ESCROW_COLORS[transaction.statutEscrow] || colors.textSecondary;
   const statusLabel = STATUT_ESCROW_LABELS[transaction.statutEscrow] || transaction.statutEscrow;
 

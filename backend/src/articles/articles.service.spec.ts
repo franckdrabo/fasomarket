@@ -12,12 +12,20 @@ describe('ArticlesService', () => {
     prisma = new MockPrismaService();
     prisma.resetStore();
 
-    // Créer un vendeur
+    // Créer des vendeurs activés (frais de 1 000 FCFA payés)
     await prisma.user.create({
-      data: { id: 'vendeur-1', phone: '+2250001', nom: 'Vendeur' },
+      data: { id: 'vendeur-1', phone: '+2250001', nom: 'Vendeur', role: 'SELLER', sellerFeePaid: true },
     });
     await prisma.user.create({
-      data: { id: 'vendeur-2', phone: '+2250002', nom: 'Autre Vendeur' },
+      data: { id: 'vendeur-2', phone: '+2250002', nom: 'Autre Vendeur', role: 'SELLER', sellerFeePaid: true },
+    });
+
+    // Un acheteur (rôle BUYER) et un vendeur non payé pour les tests de rejet
+    await prisma.user.create({
+      data: { id: 'acheteur-1', phone: '+2250003', nom: 'Acheteur', role: 'BUYER', sellerFeePaid: false },
+    });
+    await prisma.user.create({
+      data: { id: 'vendeur-non-paye', phone: '+2250004', nom: 'Vendeur Non Payé', role: 'SELLER', sellerFeePaid: false },
     });
 
     const module: TestingModule = await Test.createTestingModule({
@@ -54,7 +62,7 @@ describe('ArticlesService', () => {
     });
 
     it('devrait créer un article sans photos', async () => {
-      const { photos, ...dtoSansPhotos } = validDto;
+      const { photos: _photos, ...dtoSansPhotos } = validDto;
       const article = await service.create('vendeur-1', dtoSansPhotos);
 
       expect(article.photos).toEqual([]);
@@ -64,6 +72,24 @@ describe('ArticlesService', () => {
       const article = await service.create('vendeur-1', validDto);
 
       expect(article.vendeurId).toBe('vendeur-1');
+    });
+
+    it('devrait refuser la publication si le compte est un acheteur (BUYER)', async () => {
+      await expect(
+        service.create('acheteur-1', validDto),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('devrait refuser la publication si les frais vendeur ne sont pas payés', async () => {
+      await expect(
+        service.create('vendeur-non-paye', validDto),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('devrait refuser si le compte vendeur n\'existe pas', async () => {
+      await expect(
+        service.create('inconnu', validDto),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 

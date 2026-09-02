@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Politique de confidentialité — Bazario</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      color: #2C3E50;
+      background: #FFF8F0;
+      line-height: 1.7;
+    }
+    .container { max-width: 800px; margin: 0 auto; padding: 40px 24px 80px; }
+    header { text-align: center; margin-bottom: 48px; padding-bottom: 32px; border-bottom: 2px solid #E8D5C4; }
+    header h1 { font-size: 28px; font-weight: 800; color: #FF6B35; margin-bottom: 8px; }
+    header .subtitle { font-size: 16px; color: #7F8C8D; }
+    header .logo { font-size: 36px; margin-bottom: 12px; }
+    .lang-switch { display: flex; justify-content: center; gap: 12px; margin-top: 16px; }
+    .lang-switch a {
+      padding: 6px 16px;
+      border-radius: 20px;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .lang-switch a.active { background: #FF6B35; color: #fff; }
+    .lang-switch a:not(.active) { background: #E8D5C4; color: #7F8C8D; }
+    h2 { font-size: 20px; font-weight: 700; color: #2C3E50; margin: 36px 0 12px; }
+    h3 { font-size: 16px; font-weight: 600; color: #FF6B35; margin: 20px 0 8px; }
+    p, li { font-size: 15px; color: #4A4A4A; margin-bottom: 10px; }
+    ul { padding-left: 20px; margin-bottom: 12px; }
+    li { margin-bottom: 6px; }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+      border: 1px solid #E8D5C4;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 14px; }
+    th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #E8D5C4; }
+    th { background: #FFF0E0; font-weight: 600; color: #FF6B35; }
+    .highlight { background: #FFF0E0; padding: 16px 20px; border-radius: 8px; border-left: 4px solid #FF6B35; margin: 16px 0; }
+    .highlight p { margin-bottom: 0; }
+    a { color: #FF6B35; }
+    footer { text-align: center; margin-top: 48px; padding-top: 24px; border-top: 2px solid #E8D5C4; color: #7F8C8D; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">🛒</div>
+      <h1>Politique de confidentialité</h1>
+      <p class="subtitle">Application mobile Bazario</p>
+      <div class="lang-switch">
+        <a href="#" class="active">🇫🇷 Français</a>
+        <a href="privacy-policy-en.html">🇬🇧 English</a>
+      </div>
+      <p class="subtitle" style="margin-top:12px; font-size:13px;">Dernière mise à jour : 18 août 2026</p>
+    </header>
+
+    <div class="card">
+      <h2>1. Responsable du traitement</h2>
+      <p><strong>Bazario</strong> (ci-après « l'Application ») est éditée par :</p>
+      <ul>
+        <li><strong>Éditeur :</strong> Stromridens Team</li>
+        <li><strong>Contact :</strong> <a href="mailto:contact@bazario.com">contact@bazario.com</a></li>
+        <li><strong>Site web :</strong> <a href="https://bazario.com">bazario.com</a></li>
+      </ul>
+      <p>Le responsable du traitement des données personnelles est l'éditeur de l'Application.</p>
+    </div>
+
+    <div class="card">
+      <h2>2. Données collectées</h2>
+      <p>L'Application collecte les données suivantes dans le cadre de son fonctionnement :</p>
+
+      <h3>2.1 Données d'inscription et de compte</h3>
+      <table>
+        <thead>
+          <tr><th>Donnée</th><th>Finalité</th><th>Base légale</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Numéro de téléphone</td><td>Authentification par SMS (OTP), communication entre utilisateurs</td><td>Exécution du contrat</td></tr>
+          <tr><td>Adresse email</td><td>Authentification alternative (email/mot de passe)</td><td>Exécution du contrat</td></tr>
+          <tr><td>Mot de passe</td><td>Sécurisation du compte (haché bcrypt)</td><td>Exécution du contrat</td></tr>
+          <tr><td>Nom d'affichage</td><td>Identification publique sur les annonces et conversations</td><td>Exécution du contrat</td></tr>
+          <tr><td>Ville</td><td>Localisation des annonces et recherche géographique</td><td>Exécution du contrat</td></tr>
+          <tr><td>Biographie</td><td>Profil public de l'utilisateur</td><td>Consentement</td></tr>
+          <tr><td>Photo de profil</td><td>Identification visuelle sur le profil</td><td>Consentement</td></tr>
+        </tbody>
+      </table>
+
+      <h3>2.2 Données des annonces</h3>
+      <table>
+        <thead>
+          <tr><th>Donnée</th><th>Finalité</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Titre, description, prix, catégorie, état</td><td>Publication et recherche d'articles</td></tr>
+          <tr><td>Photos des articles</td><td>Illustration des annonces (stockées sur Cloudinary)</td></tr>
+          <tr><td>Statut de l'annonce</td><td>Gestion du cycle de vie (en ligne, réservé, vendu)</td></tr>
+        </tbody>
+      </table>
+
+      <h3>2.3 Données de messagerie</h3>
+      <table>
+        <thead>
+          <tr><th>Donnée</th><th>Finalité</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Messages texte et offres de prix</td><td>Communication entre acheteurs et vendeurs</td></tr>
+          <tr><td>Horodatage et statut de lecture</td><td>Ordre des messages et indicateur « lu / non lu »</td></tr>
+          <tr><td>Historique des conversations</td><td>Accès aux échanges précédents</td></tr>
+        </tbody>
+      </table>
+
+      <h3>2.4 Données de paiement</h3>
+      <table>
+        <thead>
+          <tr><th>Donnée</th><th>Finalité</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Référence de paiement</td><td>Suivi des transactions Mobile Money (Orange Money, Moov Money, Wave)</td></tr>
+          <tr><td>Opérateur utilisé</td><td>Traitement du paiement via CinetPay</td></tr>
+          <tr><td>Montant et statut de la transaction</td><td>Gestion des paiements et litiges</td></tr>
+        </tbody>
+      </table>
+      <div class="highlight">
+        <p><strong>⚠️ Important :</strong> Bazario ne stocke <strong>jamais</strong> les numéros de carte bancaire, les données d'identification Mobile Money ou les mots de passe des services de paiement. Les paiements sont traités exclusivement par CinetPay, un prestataire de paiement certifié PCI-DSS.</p>
+      </div>
+
+      <h3>2.5 Données techniques</h3>
+      <table>
+        <thead>
+          <tr><th>Donnée</th><th>Finalité</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Token de notification push (FCM)</td><td>Envoi de notifications (nouveaux messages, paiements, etc.)</td></tr>
+          <tr><td>Identifiant d'appareil biométrique</td><td>Connexion rapide par empreinte digitale / Face ID (optionnel)</td></tr>
+          <tr><td>Historique des notifications</td><td>Journal des notifications envoyées (statut : envoyé, livré, échoué)</td></tr>
+        </tbody>
+      </table>
+
+      <h3>2.6 Données d'évaluation</h3>
+      <table>
+        <thead>
+          <tr><th>Donnée</th><th>Finalité</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Note (1 à 5) et commentaire</td><td>Système d'évaluation des vendeurs et acheteurs</td></tr>
+          <tr><td>Note moyenne, nombre de ventes/achats</td><td>Statistiques publiques de fiabilité</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>3. Utilisation des données</h2>
+      <p>Vos données sont utilisées aux fins suivantes :</p>
+      <ul>
+        <li><strong>Fourniture du service :</strong> Création de compte, publication d'annonces, messagerie, paiements</li>
+        <li><strong>Sécurité :</strong> Authentification, prévention de la fraude, protection contre les abus</li>
+        <li><strong>Communication :</strong> Notifications push concernant vos activités (messages, paiements, litiges)</li>
+        <li><strong>Amélioration du service :</strong> Statistiques agrégées (anonymisées) pour améliorer l'expérience utilisateur</li>
+        <li><strong>Obligations légales :</strong> Respect des réglementations financières et fiscales applicables</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>4. Partage des données</h2>
+      <p>Vos données personnelles peuvent être partagées avec les tiers suivants, uniquement dans la mesure nécessaire au fonctionnement du service :</p>
+      <ul>
+        <li><strong>CinetPay</strong> (paiement) — Pour le traitement des paiements Mobile Money. CinetPay est un prestataire de paiement certifié PCI-DSS. En savoir plus : <a href="https://www.cinetpay.com" target="_blank">cinetpay.com</a></li>
+        <li><strong>Africastalking</strong> (SMS) — Pour l'envoi des codes de vérification OTP par SMS. En savoir plus : <a href="https://africastalking.com" target="_blank">africastalking.com</a></li>
+        <li><strong>Cloudinary</strong> (stockage d'images) — Pour l'hébergement des photos d'annonces et de profil. En savoir plus : <a href="https://www.cloudinary.com" target="_blank">cloudinary.com</a></li>
+        <li><strong>Firebase / Google</strong> (notifications push) — Pour l'envoi de notifications push via Firebase Cloud Messaging (FCM). En savoir plus : <a href="https://firebase.google.com" target="_blank">firebase.google.com</a></li>
+      </ul>
+      <div class="highlight">
+        <p><strong>Nous ne vendons jamais vos données personnelles à des tiers.</strong> Le partage est uniquement limité aux prestataires techniques nécessaires au fonctionnement de l'Application.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>5. Sécurité des données</h2>
+      <p>Bazario met en œuvre des mesures techniques et organisationnelles strictes pour protéger vos données :</p>
+      <ul>
+        <li><strong>Chiffrement au repos :</strong> Les données sensibles (email, token de rafraîchissement) sont chiffrées en AES-256-GCM dans la base de données</li>
+        <li><strong>Hachage des mots de passe :</strong> Les mots de passe sont hachés avec bcrypt (salt 12) — ils ne sont jamais stockés en clair</li>
+        <li><strong>Hachage des OTP :</strong> Les codes de vérification sont hachés avec Argon2id</li>
+        <li><strong>Transmission sécurisée :</strong> Toutes les communications API utilisent HTTPS/TLS</li>
+        <li><strong>Rate limiting :</strong> Protection contre les attaques par force brute sur les endpoints d'authentification</li>
+        <li><strong>JWT :</strong> Authentification par token avec rotation automatique des refresh tokens</li>
+        <li><strong>Helmet :</strong> En-têtes de sécurité HTTP (X-Content-Type-Options, CSP, etc.)</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>6. Conservation des données</h2>
+      <table>
+        <thead>
+          <tr><th>Type de données</th><th>Durée de conservation</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Compte utilisateur</td><td>Tant que le compte est actif, puis 30 jours après suppression</td></tr>
+          <tr><td>Messages de conversation</td><td>Tant que la conversation existe (suppression possible par l'utilisateur)</td></tr>
+          <tr><td>Historique des transactions</td><td>5 ans (obligation légale comptable)</td></tr>
+          <tr><td>Notifications envoyées</td><td>90 jours</td></tr>
+          <tr><td>Logs de connexion</td><td>30 jours</td></tr>
+          <tr><td>Tokens de notification push</td><td>Jusqu'à la déconnexion ou la désactivation des notifications</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>7. Vos droits</h2>
+      <p>Conformément au Règlement Général sur la Protection des Données (RGPD) et aux législations locales applicables, vous disposez des droits suivants :</p>
+      <ul>
+        <li><strong>Droit d'accès :</strong> Obtenir une copie de toutes les données personnelles vous concernant</li>
+        <li><strong>Droit de rectification :</strong> Corriger les données inexactes ou incomplètes</li>
+        <li><strong>Droit à l'effacement :</strong> Demander la suppression de vos données personnelles (« droit à l'oubli »)</li>
+        <li><strong>Droit à la portabilité :</strong> Recevoir vos données dans un format structuré et lisible par machine</li>
+        <li><strong>Droit d'opposition :</strong> Vous opposer au traitement de vos données à des fins de prospection</li>
+        <li><strong>Droit de limitation :</strong> Demander la limitation du traitement de vos données</li>
+      </ul>
+      <p>Pour exercer ces droits, contactez-nous à : <a href="mailto:contact@bazario.com">contact@bazario.com</a></p>
+      <p>Nous nous engageons à répondre à votre demande dans un délai de <strong>30 jours</strong>.</p>
+    </div>
+
+    <div class="card">
+      <h2>8. Suppression de compte</h2>
+      <p>Vous pouvez demander la suppression de votre compte et de toutes vos données personnelles en nous contactant à <a href="mailto:contact@bazario.com">contact@bazario.com</a>. La suppression sera effectuée dans un délai de 30 jours, sous réserve des obligations légales de conservation (historique des transactions pendant 5 ans).</p>
+      <p>La suppression de votre compte entraîne :</p>
+      <ul>
+        <li>La suppression de votre profil et de toutes vos annonces</li>
+        <li>La suppression de vos messages (les conversations seront anonymisées)</li>
+        <li>La suppression de vos tokens de notification push</li>
+        <li>La désactivation de votre accès à l'Application</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>9. Cookies et technologies similaires</h2>
+      <p>L'Application mobile Bazario n'utilise pas de cookies. Les seules technologies de stockage utilisées sont :</p>
+      <ul>
+        <li><strong>SecureStore (iOS) / EncryptedSharedPreferences (Android) :</strong> Stockage sécurisé des tokens d'authentification sur l'appareil</li>
+        <li><strong>AsyncStorage :</strong> Stockage local des préférences utilisateur (non sensible)</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>10. Transferts de données internationaux</h2>
+      <p>Vos données sont hébergées sur des serveurs situés en France et en Europe (via nos prestataires d'infrastructure). Les prestataires tiers (Firebase, Cloudinary, CinetPay, Africastalking) peuvent transférer certaines données vers des pays hors de l'Espace Économique Européen (EEE). Dans ce cas, nous nous assurons que des garanties appropriées sont en place (clauses contractuelles types, adequacy decisions).</p>
+    </div>
+
+    <div class="card">
+      <h2>11. Protection des mineurs</h2>
+      <p>L'Application n'est pas destinée aux personnes de moins de 16 ans. Nous ne collectons pas sciemment de données personnelles concernant des mineurs de moins de 16 ans. Si vous êtes parent ou tuteur et que vous pensez que votre enfant nous a fourni des données personnelles, contactez-nous immédiatement à <a href="mailto:contact@bazario.com">contact@bazario.com</a> afin que nous puissions procéder à leur suppression.</p>
+    </div>
+
+    <div class="card">
+      <h2>12. Modifications de cette politique</h2>
+      <p>Nous nous réservons le droit de modifier cette politique de confidentialité à tout moment. En cas de modification substantielle, nous vous en informerons par notification push ou par email. La date de dernière mise à jour est indiquée en haut de cette page.</p>
+    </div>
+
+    <div class="card">
+      <h2>13. Contact</h2>
+      <p>Pour toute question relative à cette politique de confidentialité ou à la protection de vos données personnelles :</p>
+      <ul>
+        <li><strong>Email :</strong> <a href="mailto:contact@bazario.com">contact@bazario.com</a></li>
+        <li><strong>Site web :</strong> <a href="https://bazario.com">bazario.com</a></li>
+      </ul>
+      <p>Si vous estimez que le traitement de vos données n'est pas conforme à la réglementation, vous avez le droit d'introduire une réclamation auprès de l'autorité de protection des données compétente.</p>
+    </div>
+
+    <footer>
+      <p>© 2026 Bazario — Stromridens Team. Tous droits réservés.</p>
+      <p style="margin-top:8px;">Cette politique de confidentialité est conforme au RGPD (UE) 2016/679 et aux recommandations de la CNIL.</p>
+    </footer>
+  </div>
+</body>
+</html>

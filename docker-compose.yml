@@ -12,8 +12,7 @@ services:
       POSTGRES_USER: ${DB_USER:-bazario}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-bazario_secret}
       POSTGRES_DB: ${DB_NAME:-bazario}
-    ports:
-      - "5432:5432"
+    # Pas de port host — accès interne Docker uniquement via "postgres:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-bazario}"]
       interval: 10s
@@ -27,8 +26,7 @@ services:
     restart: unless-stopped
     volumes:
       - redis_data:/data
-    ports:
-      - "6379:6379"
+    # Pas de port host — accès interne Docker uniquement via "redis:6379"
     command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -50,16 +48,41 @@ services:
       redis:
         condition: service_healthy
     environment:
-      NODE_ENV: production
+      NODE_ENV: ${NODE_ENV:-development}
       PORT: ${BACKEND_PORT:-3000}
       DATABASE_URL: "postgresql://${DB_USER:-bazario}:${DB_PASSWORD:-bazario_secret}@postgres:5432/${DB_NAME:-bazario}?schema=public"
       REDIS_URL: "redis://:${REDIS_PASSWORD:-}@redis:6379"
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-15m}
       JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-7d}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      # Clé AES-256-GCM pour chiffrer les PII (email, refresh tokens) — obligatoire en prod
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      # Secret HMAC de l'anti-replay (si réactivé) — partagé avec les clients
+      API_SECRET: ${API_SECRET:-}
+      # Secret HMAC des webhooks Mobile Money (signature des callbacks)
+      WEBHOOK_SECRET: ${WEBHOOK_SECRET:-}
+      # Exiger X-Signature sur les webhooks (CinetPay v1 ne signe pas → false par défaut)
+      REQUIRE_WEBHOOK_SIGNATURE: ${REQUIRE_WEBHOOK_SIGNATURE:-false}
+      CORS_ORIGIN: ${CORS_ORIGIN:-https://api.bazario.com}
       ORANGE_MONEY_API_KEY: ${ORANGE_MONEY_API_KEY:-}
       MOOV_MONEY_API_KEY: ${MOOV_MONEY_API_KEY:-}
       WAVE_API_KEY: ${WAVE_API_KEY:-}
+      # CinetPay — agrégateur Mobile Money (Orange, Moov, Wave)
+      CINETPAY_API_KEY: ${CINETPAY_API_KEY:-}
+      CINETPAY_SITE_ID: ${CINETPAY_SITE_ID:-}
+      CINETPAY_API_URL: ${CINETPAY_API_URL:-}
+      CINETPAY_NOTIFY_URL: ${CINETPAY_NOTIFY_URL:-}
+      # FedaPay (alternative KYC plus souple)
+      FEDAPAY_PUBLIC_KEY: ${FEDAPAY_PUBLIC_KEY:-}
+      FEDAPAY_SECRET_KEY: ${FEDAPAY_SECRET_KEY:-}
+      FEDAPAY_ENV: ${FEDAPAY_ENV:-test}
+      FEDAPAY_CALLBACK_URL: ${FEDAPAY_CALLBACK_URL:-}
+      # Africastalking — envoi des codes OTP par SMS
+      AT_USERNAME: ${AT_USERNAME:-}
+      AT_API_KEY: ${AT_API_KEY:-}
+      AT_SENDER_ID: ${AT_SENDER_ID:-}
+      AT_API_URL: ${AT_API_URL:-}
       CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME:-}
       CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY:-}
       CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET:-}
@@ -90,6 +113,8 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/ssl:/etc/nginx/ssl:ro
+      # Pour le challenge ACME Let's Encrypt (renouvellement automatique)
+      - ./nginx/certbot_data:/var/www/certbot
     profiles:
       - with-proxy
 

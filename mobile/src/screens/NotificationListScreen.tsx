@@ -13,8 +13,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../services/api';
 import { getTimeAgo } from '../utils/date';
-import { FadeInView } from '../components/animations';
 import { colors, spacing, borderRadius, typography, shadows } from '../theme';
+import EmptyState from '../components/EmptyState';
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -256,16 +256,11 @@ export default function NotificationListScreen({ onNotificationPress, onBack }: 
   function renderEmptyState() {
     if (isLoading) return null;
     return (
-      <View style={styles.emptyState}>
-        <View style={styles.emptyIcon}>
-          <Ionicons name="notifications-off-outline" size={48} color={colors.disabled} />
-        </View>
-        <Text style={styles.emptyTitle}>Aucune notification</Text>
-        <Text style={styles.emptySubtitle}>
-          Vous recevrez des notifications ici lorsque quelqu'un vous enverra un message,
-          effectuera un paiement ou interagira avec vos annonces.
-        </Text>
-      </View>
+      <EmptyState
+        icon="notifications-off-outline"
+        title="Aucune notification"
+        description="Vous recevrez des notifications ici lorsque quelqu'un vous enverra un message, effectuera un paiement ou interagira avec vos annonces."
+      />
     );
   }
 
@@ -520,31 +515,6 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
     backgroundColor: colors.primary,
-  },
-
-  // Empty state
-  emptyState: {
-    alignItems: 'center',
-    paddingHorizontal: spacing.xl,
-  },
-  emptyIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.surfaceVariant,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.lg,
-  },
-  emptyTitle: {
-    ...typography.h3,
-    marginBottom: spacing.sm,
-  },
-  emptySubtitle: {
-    ...typography.body,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
   },
 
   // Footer
