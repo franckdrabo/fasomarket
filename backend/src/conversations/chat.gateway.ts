@@ -58,7 +58,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         select: { id: true },
       });
 
-      conversations.forEach((conv) => {
+      conversations.forEach((conv: any) => {
         client.join(`conv:${conv.id}`);
       });
 

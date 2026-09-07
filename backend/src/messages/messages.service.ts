@@ -36,7 +36,7 @@ export class MessagesService {
       select: { id: true },
     });
 
-    const conversationIds = conversations.map((c) => c.id);
+    const conversationIds = conversations.map((c: any) => c.id);
 
     const count = await this.prisma.message.count({
       where: {

@@ -291,12 +291,12 @@ export class PaymentsService {
       totalTransactions: transactions,
       revenuTotal: revenu._sum.montant || 0,
       fraisServiceTotal: revenu._sum.fraisService || 0,
-      repartitionMoyenPaiement: parMoyen.map((m) => ({
+      repartitionMoyenPaiement: parMoyen.map((m: any) => ({
         moyen: m.moyenPaiement,
         count: m._count.id,
         montant: m._sum.montant || 0,
       })),
-      repartitionStatut: volume.map((v) => ({
+      repartitionStatut: volume.map((v: any) => ({
         statut: v.statutEscrow,
         count: v._count.id,
       })),
