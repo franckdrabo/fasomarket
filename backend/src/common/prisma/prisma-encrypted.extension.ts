@@ -25,7 +25,7 @@ export function createEncryptedPrismaClient(
         // Seuls les champs emailEncrypted et refreshTokenEncrypted sont chiffrés.
         // nom reste en clair car c'est un nom d'affichage public.
         // ─── Intercepter les créations ─────────────────────────────────────
-        async create({ args, query }) {
+        async create({ args, query }: { args: any; query: any }) {
           // Chiffrer nomEncrypted
           // Chiffrer emailEncrypted + générer emailHash
           if (args.data.emailEncrypted && typeof args.data.emailEncrypted === 'string') {
@@ -44,7 +44,7 @@ export function createEncryptedPrismaClient(
         },
 
         // ─── Intercepter les mises à jour ─────────────────────────────────
-        async update({ args, query }) {
+        async update({ args, query }: { args: any; query: any }) {
           if (args.data) {
             encryptUserFields(args.data as any, encryption);
           }
@@ -52,14 +52,14 @@ export function createEncryptedPrismaClient(
           return decryptUser(result, encryption);
         },
 
-        async updateMany({ args, query }) {
+        async updateMany({ args, query }: { args: any; query: any }) {
           if (args.data) {
             encryptUserFields(args.data as any, encryption);
           }
           return query(args);
         },
 
-        async upsert({ args, query }) {
+        async upsert({ args, query }: { args: any; query: any }) {
           if (args.create) {
               if (typeof args.create.emailEncrypted === 'string') {
               const emailStr = args.create.emailEncrypted;
@@ -78,30 +78,30 @@ export function createEncryptedPrismaClient(
         },
 
         // ─── Intercepter les lectures ─────────────────────────────────────
-        async findUnique({ args, query }) {
+        async findUnique({ args, query }: { args: any; query: any }) {
           const result = await query(args);
           return decryptUser(result, encryption);
         },
 
-        async findFirst({ args, query }) {
+        async findFirst({ args, query }: { args: any; query: any }) {
           const result = await query(args);
           return decryptUser(result, encryption);
         },
 
-        async findMany({ args, query }) {
+        async findMany({ args, query }: { args: any; query: any }) {
           const results = await query(args);
           if (Array.isArray(results)) {
-            return results.map((r) => decryptUser(r, encryption));
+            return results.map((r: any) => decryptUser(r, encryption));
           }
           return results;
         },
 
-        async findUniqueOrThrow({ args, query }) {
+        async findUniqueOrThrow({ args, query }: { args: any; query: any }) {
           const result = await query(args);
           return decryptUser(result, encryption);
         },
 
-        async findFirstOrThrow({ args, query }) {
+        async findFirstOrThrow({ args, query }: { args: any; query: any }) {
           const result = await query(args);
           return decryptUser(result, encryption);
         },
